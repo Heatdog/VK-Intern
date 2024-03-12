@@ -11,4 +11,10 @@ postgre_settings:
   username: postgres
   password: 123
 
+redis_settings:
+  host: redis
+  port: 6379
+  password: 456
+  token_expiration_days: 30
+
 password_key: 123

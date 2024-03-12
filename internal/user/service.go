@@ -4,21 +4,23 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Heater_dog/Vk_Intern/internal/auth"
 	cryptohash "github.com/Heater_dog/Vk_Intern/pkg/cryptoHash"
-	jwttoken "github.com/Heater_dog/Vk_Intern/pkg/jwtToken"
 	"github.com/sirupsen/logrus"
 )
 
 type UserService struct {
 	logger      *logrus.Logger
 	userRepo    UserRepository
+	authService *auth.TokenService
 	passwordKey string
 }
 
-func NewUserService(logger *logrus.Logger, userRepo UserRepository) *UserService {
+func NewUserService(logger *logrus.Logger, userRepo UserRepository, authService *auth.TokenService) *UserService {
 	return &UserService{
-		logger:   logger,
-		userRepo: userRepo,
+		logger:      logger,
+		userRepo:    userRepo,
+		authService: authService,
 	}
 }
 
@@ -31,10 +33,10 @@ func (service *UserService) SignIn(ctx context.Context, user UserLogin) (string,
 	}
 
 	if cryptohash.VerifyHash([]byte(res.Password), user.Password) {
-		token, err := jwttoken.GenerateToken(jwttoken.TokenFileds{
+		token, err := service.authService.GenerateToken(ctx, auth.TokenFileds{
 			ID:   res.ID,
 			Role: res.Role,
-		}, service.passwordKey)
+		})
 		if err != nil {
 			service.logger.Errorf("jwt token generate error: %s", err.Error())
 			return "", err

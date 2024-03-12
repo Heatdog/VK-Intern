@@ -9,6 +9,7 @@ type ConfigStorage struct {
 	Server      ServerListen   `mapstructure:"server_listen"`
 	Postgre     PostgreStorage `mapstructure:"postgre_settings"`
 	PasswordKey string         `mapstructure:"password_key"`
+	Redis       RedisStorage   `mapstructure:"redis_settings"`
 }
 
 type ServerListen struct {
@@ -22,6 +23,13 @@ type PostgreStorage struct {
 	Database string `mapstructure:"database"`
 	Username string `mapstructure:"username"`
 	Password string `mapstructure:"password"`
+}
+
+type RedisStorage struct {
+	Host            string `mapstructure:"host"`
+	Port            string `mapstructure:"port"`
+	Password        string `mapstructure:"password"`
+	TokenExparation int    `mapstructure:"token_expiration_days"`
 }
 
 func NewConfigStorage(logger *logrus.Logger) *ConfigStorage {
