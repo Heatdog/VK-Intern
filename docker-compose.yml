@@ -1,0 +1,28 @@
+
+
+services:
+  server:
+    image: server:local
+    container_name: ps-server
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgre
+    networks:
+      - ps
+
+  postgre:
+    image: postgres:16-alpine
+    container_name: ps-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123
+      - POSTGRES_DB=films_database
+    networks:
+      - ps
+    volumes:
+      - ./migrations/PostgreSQLInit.sql:/docker-entrypoint-initdb.d/PostgreSQLInit.sql
+
+networks:
+  ps:
+    driver: bridge
