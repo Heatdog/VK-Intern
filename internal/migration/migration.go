@@ -51,7 +51,7 @@ func InitDb(client client.Client) error {
 	}
 
 	q := `
-			INSERT INTO User 
+			INSERT INTO Users
 				(login, password, role) 
 			VALUES 
 				($1, $2, $3)

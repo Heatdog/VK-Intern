@@ -37,7 +37,7 @@ func (service *UserService) SignIn(ctx context.Context, user UserLogin) (string,
 	if cryptohash.VerifyHash([]byte(res.Password), user.Password) {
 		service.logger.Debug("generate tokens", slog.String("user", user.Login))
 		accessToken, refreshToken, expire, err := service.authService.GenerateToken(ctx, auth.TokenFileds{
-			ID:   res.ID,
+			ID:   res.ID.String(),
 			Role: res.Role,
 		})
 		if err != nil {

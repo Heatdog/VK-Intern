@@ -1,2 +1,2 @@
-docker build -t server:local .
-docker compose up --build server
+docker build -t server:local . 
+docker compose up --build server 

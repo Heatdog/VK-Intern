@@ -21,7 +21,7 @@ func NewUserPostgreRepository(dbClient client.Client, logger *slog.Logger) user.
 }
 
 func (repo *repository) Find(ctx context.Context, login string) (*user.User, error) {
-	repo.logger.Info("finf user in repo", slog.Any("login", login))
+	repo.logger.Info("find user in repo", slog.Any("login", login))
 	q := `
 			SELECT id, login, password, role
 			FROM Users
@@ -32,7 +32,7 @@ func (repo *repository) Find(ctx context.Context, login string) (*user.User, err
 
 	var res user.User
 
-	if err := row.Scan(&res); err != nil {
+	if err := row.Scan(&res.ID, &res.Login, &res.Password, &res.Role); err != nil {
 		repo.logger.Error("SQL error", slog.Any("error", err))
 		return nil, err
 	}

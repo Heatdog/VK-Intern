@@ -21,7 +21,7 @@ func GenerateToken(fields TokenFileds, key string) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
 
-	return token.SignedString(key)
+	return token.SignedString([]byte(key))
 }
 
 func GenerateRefreshToken() (string, error) {

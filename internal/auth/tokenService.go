@@ -23,14 +23,14 @@ func NewTokenService(logger *slog.Logger, storage TokenStorage, secretKey string
 }
 
 func (service *TokenService) GenerateToken(ctx context.Context, tokenFields TokenFileds) (string, string, time.Time, error) {
-	service.logger.Info("generate tokens", slog.String("user", tokenFields.ID))
-	service.logger.Debug("generate access token", slog.String("user", tokenFields.ID))
+	service.logger.Info("generate tokens", slog.Any("user", tokenFields.ID))
+	service.logger.Debug("generate access token", slog.Any("user", tokenFields.ID))
 	accessToken, err := GenerateToken(tokenFields, service.secretKey)
 	if err != nil {
 		service.logger.Error("generate access token failed", slog.Any("error", err))
 		return "", "", time.Time{}, err
 	}
-	service.logger.Debug("generate refresh token", slog.String("user", tokenFields.ID))
+	service.logger.Debug("generate refresh token", slog.Any("user", tokenFields.ID))
 	refreshToken, err := GenerateRefreshToken()
 	if err != nil {
 		service.logger.Error("generate refresh token failed", slog.Any("error", err))
@@ -38,7 +38,7 @@ func (service *TokenService) GenerateToken(ctx context.Context, tokenFields Toke
 	}
 	expire := time.Hour * 60 * time.Duration(service.tokenExpire)
 	service.logger.Debug("set token in storage",
-		slog.String("user", tokenFields.ID),
+		slog.Any("user", tokenFields.ID),
 		slog.String("token", refreshToken))
 	if err = service.storage.SetToken(ctx, tokenFields.ID, refreshToken, expire); err != nil {
 		service.logger.Error("set token in repo failed", slog.Any("error", err))

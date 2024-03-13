@@ -1,0 +1,57 @@
+basePath: /
+definitions:
+  respwriter.RespWriter:
+    properties:
+      message:
+        type: string
+    type: object
+  user.UserLogin:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API server for Фильмотека
+  title: Фильмотека
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: sign in web site
+      operationId: sign-in
+      parameters:
+      - description: account info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/user.UserLogin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/respwriter.RespWriter'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respwriter.RespWriter'
+      summary: SignIn
+      tags:
+      - auth
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

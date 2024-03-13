@@ -23,7 +23,7 @@ func NewRedisTokenStorage(logger *slog.Logger, storage *redis.Client) auth.Token
 }
 
 func (storage *RedisTokenStorage) SetToken(ctx context.Context, userId, token string, expire time.Duration) error {
-	storage.logger.Debug("redis set toke", slog.String("id", userId), slog.String("token", token))
+	storage.logger.Debug("redis set token", slog.String("id", userId), slog.String("token", token))
 	if err := storage.client.Set(ctx, userId, token, expire).Err(); err != nil {
 		storage.logger.Error("redis set token failed", slog.Any("error", err))
 		return err

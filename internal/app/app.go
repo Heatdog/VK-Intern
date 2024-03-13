@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	_ "github.com/Heater_dog/Vk_Intern/docs"
 	"github.com/Heater_dog/Vk_Intern/internal/auth"
 	authDb "github.com/Heater_dog/Vk_Intern/internal/auth/db"
 	"github.com/Heater_dog/Vk_Intern/internal/config"
@@ -16,7 +17,18 @@ import (
 	userDb "github.com/Heater_dog/Vk_Intern/internal/user/db"
 	"github.com/Heater_dog/Vk_Intern/pkg/client/postgre"
 	redisStorage "github.com/Heater_dog/Vk_Intern/pkg/client/redis"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
+
+// @title Фильмотека
+// @description API server for Фильмотека
+
+// @host localhost:8080
+// @BasePath /
+
+// @securityDefinitions.apiKey ApiKeyAuth
+// @in header
+// @name Authorization
 
 func App() {
 	opt := &slog.HandlerOptions{
@@ -35,7 +47,7 @@ func App() {
 	if err != nil {
 		logger.Error("connection to PostgreSQL failed", slog.Any("error", err))
 	}
-	defer dbClient.Close(ctx)
+	defer dbClient.Close()
 
 	logger.Info("init database with users")
 	if err := migrations.InitDb(dbClient); err != nil {
@@ -57,6 +69,12 @@ func App() {
 	userRepo := userDb.NewUserPostgreRepository(dbClient, logger)
 	userService := user.NewUserService(logger, userRepo, tokenService)
 	transport.NewAuthHandler(logger, userService).Register(mux)
+
+	logger.Info("adding swagger documentation")
+	mux.HandleFunc("/swagger/", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
+		httpSwagger.DeepLinking(true),
+	))
 
 	host := fmt.Sprintf("%s:%s", cfg.Server.IP, cfg.Server.Port)
 
