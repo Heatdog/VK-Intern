@@ -7,7 +7,7 @@ import (
 
 	"github.com/Heater_dog/Vk_Intern/internal/config"
 	"github.com/Heater_dog/Vk_Intern/pkg/client"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func NewPostgreClient(ctx context.Context, cfg config.PostgreStorage) (client.Client, error) {
@@ -16,7 +16,7 @@ func NewPostgreClient(ctx context.Context, cfg config.PostgreStorage) (client.Cl
 	ctx, cancel := context.WithTimeout(ctx, 12*time.Second)
 	defer cancel()
 
-	conn, err := pgxpool.Connect(ctx, dsn)
+	conn, err := pgxpool.New(ctx, dsn)
 	if err != nil {
 		return nil, err
 	}

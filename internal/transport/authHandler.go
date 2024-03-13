@@ -7,14 +7,15 @@ import (
 	"net/http"
 
 	"github.com/Heater_dog/Vk_Intern/internal/user"
+	"github.com/asaskevich/govalidator"
 )
 
 type AuthHandler struct {
 	logger      *slog.Logger
-	userService *user.UserService
+	userService user.UserService
 }
 
-func NewAuthHandler(logger *slog.Logger, userService *user.UserService) Handler {
+func NewAuthHandler(logger *slog.Logger, userService user.UserService) Handler {
 	return &AuthHandler{
 		logger:      logger,
 		userService: userService,
@@ -26,7 +27,7 @@ const (
 )
 
 func (handler *AuthHandler) Register(router *http.ServeMux) {
-	router.HandleFunc(signInURL, handler.signInHandle)
+	router.HandleFunc(signInURL, handler.SignInHandle)
 }
 
 // SignIn	godoc
@@ -41,7 +42,7 @@ func (handler *AuthHandler) Register(router *http.ServeMux) {
 // @Failure 400 {object} respWriter
 // @Failure 500 {object} respWriter
 // @Router /login [post]
-func (handler *AuthHandler) signInHandle(w http.ResponseWriter, r *http.Request) {
+func (handler *AuthHandler) SignInHandle(w http.ResponseWriter, r *http.Request) {
 	handler.logger.Info("sign in user")
 
 	handler.logger.Debug("read request body")
@@ -56,7 +57,14 @@ func (handler *AuthHandler) signInHandle(w http.ResponseWriter, r *http.Request)
 	var user user.UserLogin
 	handler.logger.Debug("unmarshaling request body")
 	if err = json.Unmarshal(data, &user); err != nil {
-		handler.logger.Error("request body scheme error", slog.Any("error", err))
+		handler.logger.Warn("request body scheme error", slog.Any("error", err))
+		NewRespWriter(w, err.Error(), http.StatusBadRequest, handler.logger)
+		return
+	}
+	handler.logger.Debug("validate user struct")
+	_, err = govalidator.ValidateStruct(user)
+	if err != nil {
+		handler.logger.Warn("struct validate failed", slog.Any("error", err))
 		NewRespWriter(w, err.Error(), http.StatusBadRequest, handler.logger)
 		return
 	}
@@ -70,13 +78,16 @@ func (handler *AuthHandler) signInHandle(w http.ResponseWriter, r *http.Request)
 	}
 
 	handler.logger.Info("user tokens set", slog.String("user", user.Login),
-		slog.String("access token", accessToken), slog.String("refresh token", refreshToken))
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Authorization", "Bearer "+accessToken)
+		slog.String("access token", accessToken),
+		slog.Group("refresh token", slog.String("token", refreshToken), slog.Any("expire", expire)))
 	http.SetCookie(w, &http.Cookie{
-		Name:    "refresh token",
-		Value:   refreshToken,
-		Expires: expire,
+		Name:     "token",
+		Value:    refreshToken,
+		HttpOnly: true,
+		Expires:  expire,
+		Secure:   true,
 	})
+	w.Header().Set("Authorization", "Bearer "+accessToken)
+	NewRespWriter(w, "", http.StatusOK, handler.logger)
 	handler.logger.Info("successful auth", slog.String("user", user.Login))
 }

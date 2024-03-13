@@ -25,13 +25,13 @@ func GenerateToken(fields TokenFileds, key string) (string, error) {
 }
 
 func GenerateRefreshToken() (string, error) {
-	data := make([]byte, 32)
-
 	s := rand.NewSource(time.Now().Unix())
 	r := rand.New(s)
 
-	if _, err := r.Read(data); err != nil {
-		return "", err
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	data := make([]rune, 90)
+	for i := range data {
+		data[i] = letters[r.Intn(len(letters))]
 	}
 
 	return string(data), nil

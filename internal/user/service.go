@@ -10,21 +10,26 @@ import (
 	cryptohash "github.com/Heater_dog/Vk_Intern/pkg/cryptoHash"
 )
 
-type UserService struct {
-	logger      *slog.Logger
-	userRepo    UserRepository
-	authService *auth.TokenService
+//go:generate go run github.com/vektra/mockery/v2@v2.42.1 --name=UserService
+type UserService interface {
+	SignIn(ctx context.Context, user UserLogin) (accessToken string, refreshToken string, expire time.Time, err error)
 }
 
-func NewUserService(logger *slog.Logger, userRepo UserRepository, authService *auth.TokenService) *UserService {
-	return &UserService{
+type userService struct {
+	logger      *slog.Logger
+	userRepo    UserRepository
+	authService auth.TokenService
+}
+
+func NewUserService(logger *slog.Logger, userRepo UserRepository, authService auth.TokenService) UserService {
+	return &userService{
 		logger:      logger,
 		userRepo:    userRepo,
 		authService: authService,
 	}
 }
 
-func (service *UserService) SignIn(ctx context.Context, user UserLogin) (string, string, time.Time, error) {
+func (service *userService) SignIn(ctx context.Context, user UserLogin) (string, string, time.Time, error) {
 	service.logger.Info("sign in", slog.String("user", user.Login))
 	service.logger.Debug("get user from repo", slog.String("user", user.Login))
 	res, err := service.userRepo.Find(ctx, user.Login)
@@ -46,7 +51,7 @@ func (service *UserService) SignIn(ctx context.Context, user UserLogin) (string,
 		}
 		return accessToken, refreshToken, expire, nil
 	} else {
-		errStr := fmt.Sprint("wrong password", slog.Any("error", user.Login))
+		errStr := fmt.Sprint("wrong password ", slog.Any("error", user.Login))
 		service.logger.Info(errStr)
 		return "", "", time.Time{}, fmt.Errorf(errStr)
 	}

@@ -6,13 +6,13 @@ import (
 	"net/http"
 )
 
-type respWriter struct {
+type RespWriter struct {
 	Text string `json:"message"`
 }
 
 func NewRespWriter(w http.ResponseWriter, text string, statusCode int, logger *slog.Logger) {
 	w.WriteHeader(statusCode)
-	res, err := json.Marshal(respWriter{
+	res, err := json.Marshal(RespWriter{
 		Text: text,
 	})
 	if err != nil {
