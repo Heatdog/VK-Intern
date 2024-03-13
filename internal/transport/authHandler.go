@@ -3,18 +3,18 @@ package transport
 import (
 	"encoding/json"
 	"io"
+	"log/slog"
 	"net/http"
 
 	"github.com/Heater_dog/Vk_Intern/internal/user"
-	"github.com/sirupsen/logrus"
 )
 
 type AuthHandler struct {
-	logger      *logrus.Logger
+	logger      *slog.Logger
 	userService *user.UserService
 }
 
-func NewAuthHandler(logger *logrus.Logger, userService *user.UserService) Handler {
+func NewAuthHandler(logger *slog.Logger, userService *user.UserService) Handler {
 	return &AuthHandler{
 		logger:      logger,
 		userService: userService,
@@ -30,31 +30,39 @@ func (handler *AuthHandler) Register(router *http.ServeMux) {
 }
 
 func (handler *AuthHandler) signInHandle(w http.ResponseWriter, r *http.Request) {
-	handler.logger.Infof("Sign in user")
+	handler.logger.Info("sign in user")
 
+	handler.logger.Debug("read request body")
 	data, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
-		handler.logger.Errorf("Request body reading error: %s", err.Error())
+		handler.logger.Error("request body reading failed", slog.Any("error", err))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	var user user.UserLogin
+	handler.logger.Debug("unmarshaling request body")
 	if err = json.Unmarshal(data, &user); err != nil {
-		handler.logger.Errorf("Request body scheme error: %s", err.Error())
+		handler.logger.Error("request body scheme error", slog.Any("error", err))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	token, err := handler.userService.SignIn(r.Context(), user)
+	handler.logger.Debug("sign in service", slog.String("user", user.Login))
+	accessToken, refreshToken, expire, err := handler.userService.SignIn(r.Context(), user)
 	if err != nil {
-		handler.logger.Infof("User service error: %s", err.Error())
+		handler.logger.Warn("user service error", slog.Any("error", err))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Authorization", "Bearer "+token)
+	http.SetCookie(w, &http.Cookie{
+		Name:    "refresh token",
+		Value:   refreshToken,
+		Expires: expire,
+	})
+	w.Header().Set("Authorization", "Bearer "+accessToken)
 	w.WriteHeader(http.StatusOK)
-	handler.logger.Infof("Successful auth: %s", user.Login)
+	handler.logger.Info("successful auth", slog.String("user", user.Login))
 
 }

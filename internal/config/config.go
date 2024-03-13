@@ -1,7 +1,8 @@
 package config
 
 import (
-	"github.com/sirupsen/logrus"
+	"log/slog"
+
 	"github.com/spf13/viper"
 )
 
@@ -32,14 +33,16 @@ type RedisStorage struct {
 	TokenExparation int    `mapstructure:"token_expiration_days"`
 }
 
-func NewConfigStorage(logger *logrus.Logger) *ConfigStorage {
+func NewConfigStorage(logger *slog.Logger) *ConfigStorage {
+	logger.Debug("reading log file")
 	viper.SetConfigFile("config.yaml")
 	if err := viper.ReadInConfig(); err != nil {
-		logger.Fatalf("config file reading error: %s", err.Error())
+		logger.Error("config file reading failed", slog.Any("error", err))
 	}
 	res := &ConfigStorage{}
+	logger.Debug("unmarshaling log file")
 	if err := viper.Unmarshal(res); err != nil {
-		logger.Fatalf("unmarshaling config file error: %s", err.Error())
+		logger.Error("unmarshaling config file failed", slog.Any("error", err))
 	}
 	return res
 }

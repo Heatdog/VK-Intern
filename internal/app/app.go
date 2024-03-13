@@ -3,7 +3,9 @@ package app
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/Heater_dog/Vk_Intern/internal/auth"
 	authDb "github.com/Heater_dog/Vk_Intern/internal/auth/db"
@@ -14,30 +16,36 @@ import (
 	userDb "github.com/Heater_dog/Vk_Intern/internal/user/db"
 	"github.com/Heater_dog/Vk_Intern/pkg/client/postgre"
 	redisStorage "github.com/Heater_dog/Vk_Intern/pkg/client/redis"
-	"github.com/sirupsen/logrus"
 )
 
 func App() {
-	logger := logrus.New()
+	opt := &slog.HandlerOptions{
+		AddSource: true,
+		Level:     slog.LevelDebug,
+	}
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, opt))
+	slog.SetDefault(logger)
+
 	ctx := context.Background()
-	logger.Info("Reading server config files")
+	logger.Info("reading server config files")
 	cfg := config.NewConfigStorage(logger)
 
-	logger.Info("Connecting to DataBase")
+	logger.Info("connecting to DataBase")
 	dbClient, err := postgre.NewPostgreClient(ctx, cfg.Postgre)
 	if err != nil {
-		logger.Fatalf("Connection to PostgreSQL error: %s", err.Error())
+		logger.Error("connection to PostgreSQL failed", slog.Any("error", err))
 	}
 	defer dbClient.Close(ctx)
 
+	logger.Info("init database with users")
 	if err := migrations.InitDb(dbClient); err != nil {
-		logger.Fatalf("Init db error: %s", err.Error())
+		logger.Error("init db failed", slog.Any("error", err))
 	}
 
-	logger.Info("Connecting to TokenDataBase")
+	logger.Info("connecting to TokenDataBase")
 	redisClient, err := redisStorage.NewRedisClient(ctx, &cfg.Redis)
 	if err != nil {
-		logger.Fatalf("Connection to Redis error: %s", err.Error())
+		logger.Error("connection to Redis failed", slog.Any("error", err))
 	}
 	defer redisClient.Close()
 
@@ -50,10 +58,10 @@ func App() {
 	userService := user.NewUserService(logger, userRepo, tokenService)
 	transport.NewAuthHandler(logger, userService).Register(mux)
 
-	dsn := fmt.Sprintf("%s:%s", cfg.Server.IP, cfg.Server.Port)
+	host := fmt.Sprintf("%s:%s", cfg.Server.IP, cfg.Server.Port)
 
-	logger.Infof("Listening server on: %s", dsn)
-	if err := http.ListenAndServe(dsn, mux); err != nil {
-		logger.Fatalf("Server listnenig error: %s", err.Error())
+	logger.Info("listening server", slog.String("host", host))
+	if err := http.ListenAndServe(host, mux); err != nil {
+		logger.Error("server listnenig failed", slog.Any("error", err))
 	}
 }

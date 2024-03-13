@@ -3,20 +3,20 @@ package user
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"time"
 
 	"github.com/Heater_dog/Vk_Intern/internal/auth"
 	cryptohash "github.com/Heater_dog/Vk_Intern/pkg/cryptoHash"
-	"github.com/sirupsen/logrus"
 )
 
 type UserService struct {
-	logger      *logrus.Logger
+	logger      *slog.Logger
 	userRepo    UserRepository
 	authService *auth.TokenService
-	passwordKey string
 }
 
-func NewUserService(logger *logrus.Logger, userRepo UserRepository, authService *auth.TokenService) *UserService {
+func NewUserService(logger *slog.Logger, userRepo UserRepository, authService *auth.TokenService) *UserService {
 	return &UserService{
 		logger:      logger,
 		userRepo:    userRepo,
@@ -24,27 +24,30 @@ func NewUserService(logger *logrus.Logger, userRepo UserRepository, authService 
 	}
 }
 
-func (service *UserService) SignIn(ctx context.Context, user UserLogin) (string, error) {
-	service.logger.Infof("User %s sign in started", user.Login)
+func (service *UserService) SignIn(ctx context.Context, user UserLogin) (string, string, time.Time, error) {
+	service.logger.Info("sign in", slog.String("user", user.Login))
+	service.logger.Debug("get user from repo", slog.String("user", user.Login))
 	res, err := service.userRepo.Find(ctx, user.Login)
 	if err != nil {
-		service.logger.Infof("User repo error: %s", err.Error())
-		return "", err
+		service.logger.Warn("user repo error", slog.Any("error", err))
+		return "", "", time.Time{}, err
 	}
 
+	service.logger.Debug("verify password", slog.String("user", user.Login))
 	if cryptohash.VerifyHash([]byte(res.Password), user.Password) {
-		token, err := service.authService.GenerateToken(ctx, auth.TokenFileds{
+		service.logger.Debug("generate tokens", slog.String("user", user.Login))
+		accessToken, refreshToken, expire, err := service.authService.GenerateToken(ctx, auth.TokenFileds{
 			ID:   res.ID,
 			Role: res.Role,
 		})
 		if err != nil {
-			service.logger.Errorf("jwt token generate error: %s", err.Error())
-			return "", err
+			service.logger.Warn("jwt token generate failed", slog.Any("error", err))
+			return "", "", time.Time{}, err
 		}
-		return token, nil
+		return accessToken, refreshToken, expire, nil
 	} else {
-		errStr := fmt.Sprintf("Wrong password for user %s", user.Login)
+		errStr := fmt.Sprint("wrong password", slog.Any("error", user.Login))
 		service.logger.Info(errStr)
-		return "", fmt.Errorf(errStr)
+		return "", "", time.Time{}, fmt.Errorf(errStr)
 	}
 }

@@ -2,18 +2,18 @@ package userDb
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/Heater_dog/Vk_Intern/internal/user"
 	"github.com/Heater_dog/Vk_Intern/pkg/client"
-	"github.com/sirupsen/logrus"
 )
 
 type repository struct {
 	dbClient client.Client
-	logger   *logrus.Logger
+	logger   *slog.Logger
 }
 
-func NewUserPostgreRepository(dbClient client.Client, logger *logrus.Logger) user.UserRepository {
+func NewUserPostgreRepository(dbClient client.Client, logger *slog.Logger) user.UserRepository {
 	return &repository{
 		dbClient: dbClient,
 		logger:   logger,
@@ -21,18 +21,19 @@ func NewUserPostgreRepository(dbClient client.Client, logger *logrus.Logger) use
 }
 
 func (repo *repository) Find(ctx context.Context, login string) (*user.User, error) {
-	repo.logger.Infof("USer repo find method for login: %s", login)
+	repo.logger.Info("finf user in repo", slog.Any("login", login))
 	q := `
 			SELECT id, login, password, role
 			FROM Users
 			WHERE login = $1
 	`
+	repo.logger.Debug("user repo query", slog.String("query", q))
 	row := repo.dbClient.QueryRow(ctx, q, login)
 
 	var res user.User
 
 	if err := row.Scan(&res); err != nil {
-		repo.logger.Infof("SQL error: %s", err.Error())
+		repo.logger.Error("SQL error", slog.Any("error", err))
 		return nil, err
 	}
 
