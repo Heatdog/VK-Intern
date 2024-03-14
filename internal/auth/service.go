@@ -73,19 +73,20 @@ func (service *tokenService) VerifyToken(ctx context.Context, refreshToken strin
 		service.logger.Warn("incorrect refresh token", slog.String("token", refreshToken))
 		return "", "", time.Time{}, err
 	}
+
 	storagedToken, err := service.storage.GetToken(ctx, fields.ID)
 	if err != nil {
 		service.logger.Warn("token does not contain", slog.String("token", refreshToken))
 		return "", "", time.Time{}, err
 	}
-	service.logger.Debug("got token from storage", slog.String("token", storagedToken))
 
+	service.logger.Debug("got token from storage", slog.String("token", storagedToken))
 	if !strings.EqualFold(refreshToken, storagedToken) {
 		service.logger.Warn("tokens are not equal")
 		return "", "", time.Time{}, fmt.Errorf("tokens are not equal")
-	} else {
-		service.logger.Info("refresh tokens equal, generate new pair of tokens")
-
-		return service.GenerateToken(ctx, *fields)
 	}
+
+	service.logger.Info("refresh tokens equal, generate new pair of tokens")
+	return service.GenerateToken(ctx, *fields)
+
 }

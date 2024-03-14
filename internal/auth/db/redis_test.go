@@ -76,5 +76,56 @@ func TestSetToken(t *testing.T) {
 			}
 		})
 	}
+}
 
+func TestGetToken(t *testing.T) {
+	db, mock := redismock.NewClientMock()
+	defer db.Close()
+	testingTables := []struct {
+		name    string
+		context context.Context
+
+		userId string
+
+		expectedToken string
+		expectedError error
+	}{
+		{
+			name:    "OK",
+			context: context.Background(),
+
+			userId: "123",
+
+			expectedToken: "456",
+			expectedError: nil,
+		},
+		{
+			name:    "storage error",
+			context: context.Background(),
+
+			userId:        "123",
+			expectedToken: "",
+			expectedError: fmt.Errorf("storage error"),
+		},
+	}
+	for _, testCase := range testingTables {
+		t.Run(testCase.name, func(t *testing.T) {
+			logger := slog.New(slog.NewJSONHandler(io.Discard, nil))
+
+			if testCase.expectedError == nil {
+				mock.ExpectGet(testCase.userId).SetVal(testCase.expectedToken)
+			} else {
+				mock.ExpectGet(testCase.userId).SetErr(testCase.expectedError)
+			}
+			storage := authDb.NewRedisTokenStorage(logger, db)
+
+			token, err := storage.GetToken(testCase.context, testCase.userId)
+			if !assert.Equal(t, testCase.expectedError, err) {
+				t.Errorf("error test failed. Expected %s, got %s", testCase.expectedError, err)
+			}
+			if !assert.Equal(t, testCase.expectedToken, token) {
+				t.Errorf("token test failed. Expected %s, got %s", testCase.expectedToken, token)
+			}
+		})
+	}
 }

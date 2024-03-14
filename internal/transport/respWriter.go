@@ -19,6 +19,7 @@ func NewRespWriter(w http.ResponseWriter, text string, statusCode int, logger *s
 		logger.Error("json marshaling failed", slog.Any("error", err))
 		return
 	}
+
 	if _, err := w.Write(res); err != nil {
 		logger.Error("writing in respone failed", slog.Any("error", err))
 		return

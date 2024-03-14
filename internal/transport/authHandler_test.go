@@ -1,4 +1,4 @@
-package transport
+package transport_test
 
 import (
 	"bytes"
@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Heater_dog/Vk_Intern/internal/transport"
 	"github.com/Heater_dog/Vk_Intern/internal/user"
 	"github.com/Heater_dog/Vk_Intern/internal/user/mocks"
 	"github.com/stretchr/testify/assert"
@@ -37,6 +38,8 @@ func TestSignInHandler(t *testing.T) {
 		expectedRefreshToken string
 		expectedMessage      string
 		expectedError        error
+
+		method string
 	}{
 		{
 			name: "OK",
@@ -54,6 +57,8 @@ func TestSignInHandler(t *testing.T) {
 			expectedRefreshToken: "456",
 			expectedMessage:      "",
 			expectedError:        nil,
+
+			method: "POST",
 		},
 		{
 			name:                 "Bad Request scheame",
@@ -65,6 +70,8 @@ func TestSignInHandler(t *testing.T) {
 			expectedRefreshToken: "",
 			expectedMessage:      "login: non zero value required;password: non zero value required",
 			expectedError:        fmt.Errorf("login: non zero value required;password: non zero value required"),
+
+			method: "POST",
 		},
 		{
 			name:                 "Empty Request body",
@@ -76,6 +83,8 @@ func TestSignInHandler(t *testing.T) {
 			expectedRefreshToken: "",
 			expectedMessage:      "unexpected end of JSON input",
 			expectedError:        fmt.Errorf("unexpected end of JSON input"),
+
+			method: "POST",
 		},
 		{
 			name: "Service error",
@@ -93,6 +102,17 @@ func TestSignInHandler(t *testing.T) {
 			expectedRefreshToken: "",
 			expectedMessage:      "service error",
 			expectedError:        fmt.Errorf("service error"),
+
+			method: "POST",
+		},
+		{
+			name:   "Routin failed",
+			method: "GET",
+
+			userService: nil,
+
+			context:            context.Background(),
+			expectedStatusCode: http.StatusNotFound,
 		},
 	}
 
@@ -116,15 +136,12 @@ func TestSignInHandler(t *testing.T) {
 
 			logger := slog.New(slog.NewJSONHandler(io.Discard, nil))
 
-			authHandler := &AuthHandler{
-				userService: userService,
-				logger:      logger,
-			}
+			authHandler := transport.NewAuthHandler(logger, userService)
 
-			r := httptest.NewRequest("POST", "/login", bytes.NewBufferString(el.requestBody))
+			r := httptest.NewRequest(el.method, "/login", bytes.NewBufferString(el.requestBody))
 			w := httptest.NewRecorder()
 
-			authHandler.SignInHandle(w, r)
+			authHandler.LoginRouting(w, r)
 			resp := w.Result()
 
 			header := strings.Split(resp.Header.Get("Authorization"), " ")
@@ -138,7 +155,7 @@ func TestSignInHandler(t *testing.T) {
 			}
 			body, _ := io.ReadAll(resp.Body)
 
-			message := RespWriter{
+			message := transport.RespWriter{
 				Text: el.expectedMessage,
 			}
 

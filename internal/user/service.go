@@ -51,9 +51,10 @@ func (service *userService) SignIn(ctx context.Context, user UserLogin) (string,
 			return "", "", time.Time{}, err
 		}
 		return accessToken, refreshToken, expire, nil
-	} else {
-		errStr := fmt.Sprint("wrong password ", slog.Any("error", user.Login))
-		service.logger.Info(errStr)
-		return "", "", time.Time{}, fmt.Errorf(errStr)
 	}
+
+	errStr := fmt.Sprint("wrong password ", slog.Any("error", user.Login))
+	service.logger.Info(errStr)
+	return "", "", time.Time{}, fmt.Errorf(errStr)
+
 }

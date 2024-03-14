@@ -15,7 +15,7 @@ type AuthHandler struct {
 	userService user.UserService
 }
 
-func NewAuthHandler(logger *slog.Logger, userService user.UserService) Handler {
+func NewAuthHandler(logger *slog.Logger, userService user.UserService) *AuthHandler {
 	return &AuthHandler{
 		logger:      logger,
 		userService: userService,
@@ -27,14 +27,14 @@ const (
 )
 
 func (handler *AuthHandler) Register(router *http.ServeMux) {
-	router.HandleFunc(signInURL, handler.loginRouting)
+	router.HandleFunc(signInURL, handler.LoginRouting)
 }
 
-func (handler *AuthHandler) loginRouting(w http.ResponseWriter, r *http.Request) {
+func (handler *AuthHandler) LoginRouting(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		handler.SignInHandle(w, r)
 	} else {
-		w.WriteHeader(http.StatusNotFound)
+		NewRespWriter(w, "", http.StatusNotFound, handler.logger)
 	}
 }
 
@@ -62,13 +62,15 @@ func (handler *AuthHandler) SignInHandle(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	handler.logger.Debug("Request body", slog.String("body", string(data)))
-	var user user.UserLogin
+
 	handler.logger.Debug("unmarshaling request body")
+	var user user.UserLogin
 	if err = json.Unmarshal(data, &user); err != nil {
 		handler.logger.Warn("request body scheme error", slog.Any("error", err))
 		NewRespWriter(w, err.Error(), http.StatusBadRequest, handler.logger)
 		return
 	}
+
 	handler.logger.Debug("validate user struct")
 	_, err = govalidator.ValidateStruct(user)
 	if err != nil {

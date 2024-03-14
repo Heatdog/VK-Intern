@@ -14,6 +14,34 @@ type TokenStorage struct {
 	mock.Mock
 }
 
+// GetToken provides a mock function with given fields: ctx, userId
+func (_m *TokenStorage) GetToken(ctx context.Context, userId string) (string, error) {
+	ret := _m.Called(ctx, userId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetToken")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+		return rf(ctx, userId)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = rf(ctx, userId)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SetToken provides a mock function with given fields: ctx, userId, token, expire
 func (_m *TokenStorage) SetToken(ctx context.Context, userId string, token string, expire time.Duration) error {
 	ret := _m.Called(ctx, userId, token, expire)

@@ -48,6 +48,7 @@ require (
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/pashagolub/pgxmock v1.8.0
 	github.com/pashagolub/pgxmock/v2 v2.12.0
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/redis/go-redis/v9 v9.5.1

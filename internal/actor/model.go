@@ -6,16 +6,16 @@ import (
 	"github.com/google/uuid"
 )
 
-type gender string
+type Gender string
 
 const (
-	Male   gender = "Male"
-	Female gender = "Female"
+	Male   Gender = "Male"
+	Female Gender = "Female"
 )
 
 type Actor struct {
 	id        uuid.UUID
 	name      string
-	gender    gender
+	gender    Gender
 	birthDate time.Time
 }

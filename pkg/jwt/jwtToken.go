@@ -8,9 +8,8 @@ import (
 )
 
 type TokenFileds struct {
-	jwt.StandardClaims
-	ID   string
-	Role string
+	ID   string `json:"sub"`
+	Role string `json:"role"`
 }
 
 func GenerateToken(fields TokenFileds, key string) (string, error) {
@@ -36,12 +35,17 @@ func VerifyToken(tokenString, key string) (*TokenFileds, error) {
 		return nil, err
 	}
 
-	claims, ok := token.Claims.(*TokenFileds)
+	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		return nil, fmt.Errorf("token calims are not of type *TokenClaims")
 	}
 
-	return claims, nil
+	res := &TokenFileds{
+		ID:   claims["sub"].(string),
+		Role: claims["role"].(string),
+	}
+
+	return res, nil
 }
 
 func GenerateRefreshToken(fields TokenFileds, key string, expire time.Duration) (string, error) {

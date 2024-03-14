@@ -39,6 +39,7 @@ func NewConfigStorage(logger *slog.Logger) *ConfigStorage {
 	if err := viper.ReadInConfig(); err != nil {
 		logger.Error("config file reading failed", slog.Any("error", err))
 	}
+
 	res := &ConfigStorage{}
 	logger.Debug("unmarshaling log file")
 	if err := viper.Unmarshal(res); err != nil {
