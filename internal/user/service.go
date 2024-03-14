@@ -8,6 +8,7 @@ import (
 
 	"github.com/Heater_dog/Vk_Intern/internal/auth"
 	cryptohash "github.com/Heater_dog/Vk_Intern/pkg/cryptoHash"
+	"github.com/Heater_dog/Vk_Intern/pkg/jwt"
 )
 
 //go:generate go run github.com/vektra/mockery/v2@v2.42.1 --name=UserService
@@ -41,7 +42,7 @@ func (service *userService) SignIn(ctx context.Context, user UserLogin) (string,
 	service.logger.Debug("verify password", slog.String("user", user.Login))
 	if cryptohash.VerifyHash([]byte(res.Password), user.Password) {
 		service.logger.Debug("generate tokens", slog.String("user", user.Login))
-		accessToken, refreshToken, expire, err := service.authService.GenerateToken(ctx, auth.TokenFileds{
+		accessToken, refreshToken, expire, err := service.authService.GenerateToken(ctx, jwt.TokenFileds{
 			ID:   res.ID.String(),
 			Role: res.Role,
 		})

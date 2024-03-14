@@ -8,11 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Heater_dog/Vk_Intern/internal/auth"
 	tokenMocks "github.com/Heater_dog/Vk_Intern/internal/auth/mocks"
 	"github.com/Heater_dog/Vk_Intern/internal/user"
 	userMocks "github.com/Heater_dog/Vk_Intern/internal/user/mocks"
 	cryptohash "github.com/Heater_dog/Vk_Intern/pkg/cryptoHash"
+	"github.com/Heater_dog/Vk_Intern/pkg/jwt"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
@@ -114,7 +114,7 @@ func TestSignIn(t *testing.T) {
 					testCase.expectedUser.Password = string(pswd)
 				}
 
-				tokenService.On("GenerateToken", testCase.context, auth.TokenFileds{
+				tokenService.On("GenerateToken", testCase.context, jwt.TokenFileds{
 					ID:   testCase.expectedUser.ID.String(),
 					Role: testCase.expectedUser.Role,
 				}).Return(testCase.expectedAccessToken, testCase.expectedRefreshToken,

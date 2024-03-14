@@ -24,7 +24,7 @@ func (repo *repository) Find(ctx context.Context, login string) (*user.User, err
 	repo.logger.Info("find user in repo", slog.Any("login", login))
 	q := `
 			SELECT id, login, password, role
-			FROM Users
+			FROM users
 			WHERE login = $1
 	`
 	repo.logger.Debug("user repo query", slog.String("query", q))

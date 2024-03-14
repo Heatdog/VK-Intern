@@ -5,8 +5,7 @@ package mocks
 import (
 	context "context"
 
-	auth "github.com/Heater_dog/Vk_Intern/internal/auth"
-
+	jwt "github.com/Heater_dog/Vk_Intern/pkg/jwt"
 	mock "github.com/stretchr/testify/mock"
 
 	time "time"
@@ -18,7 +17,7 @@ type TokenService struct {
 }
 
 // GenerateToken provides a mock function with given fields: ctx, tokenFields
-func (_m *TokenService) GenerateToken(ctx context.Context, tokenFields auth.TokenFileds) (string, string, time.Time, error) {
+func (_m *TokenService) GenerateToken(ctx context.Context, tokenFields jwt.TokenFileds) (string, string, time.Time, error) {
 	ret := _m.Called(ctx, tokenFields)
 
 	if len(ret) == 0 {
@@ -29,28 +28,28 @@ func (_m *TokenService) GenerateToken(ctx context.Context, tokenFields auth.Toke
 	var r1 string
 	var r2 time.Time
 	var r3 error
-	if rf, ok := ret.Get(0).(func(context.Context, auth.TokenFileds) (string, string, time.Time, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, jwt.TokenFileds) (string, string, time.Time, error)); ok {
 		return rf(ctx, tokenFields)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, auth.TokenFileds) string); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, jwt.TokenFileds) string); ok {
 		r0 = rf(ctx, tokenFields)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, auth.TokenFileds) string); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, jwt.TokenFileds) string); ok {
 		r1 = rf(ctx, tokenFields)
 	} else {
 		r1 = ret.Get(1).(string)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, auth.TokenFileds) time.Time); ok {
+	if rf, ok := ret.Get(2).(func(context.Context, jwt.TokenFileds) time.Time); ok {
 		r2 = rf(ctx, tokenFields)
 	} else {
 		r2 = ret.Get(2).(time.Time)
 	}
 
-	if rf, ok := ret.Get(3).(func(context.Context, auth.TokenFileds) error); ok {
+	if rf, ok := ret.Get(3).(func(context.Context, jwt.TokenFileds) error); ok {
 		r3 = rf(ctx, tokenFields)
 	} else {
 		r3 = ret.Error(3)

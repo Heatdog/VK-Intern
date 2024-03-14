@@ -40,7 +40,7 @@ func TestFind(t *testing.T) {
 				rows := pgxmock.NewRows([]string{"id", "login", "password", "role"}).
 					AddRow(id, login, password, role)
 
-				mock.ExpectQuery("SELECT id, login, password, role FROM Users").
+				mock.ExpectQuery("SELECT id, login, password, role FROM users").
 					WithArgs(login).
 					WillReturnRows(rows)
 			},
@@ -59,7 +59,7 @@ func TestFind(t *testing.T) {
 			login:   "",
 
 			mockBehavior: func(id uuid.UUID, login, password, role string, err error) {
-				mock.ExpectQuery("SELECT id, login, password, role FROM Users").
+				mock.ExpectQuery("SELECT id, login, password, role FROM users").
 					WithArgs(login).
 					WillReturnError(err)
 			},

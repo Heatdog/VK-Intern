@@ -10,15 +10,16 @@ import (
 
 	"github.com/Heater_dog/Vk_Intern/internal/auth"
 	"github.com/Heater_dog/Vk_Intern/internal/auth/mocks"
+	"github.com/Heater_dog/Vk_Intern/pkg/jwt"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTokenService_GenerateToken(t *testing.T) {
-	type mockTokens func(tokenFileds auth.TokenFileds, key string) (accessToken, refreshToken string)
+	type mockTokens func(tokenFileds jwt.TokenFileds, key string) (accessToken, refreshToken string)
 	testTable := []struct {
 		name        string
 		context     context.Context
-		tokenFields auth.TokenFileds
+		tokenFields jwt.TokenFileds
 
 		mockTokens    mockTokens
 		expectedError error
@@ -26,14 +27,14 @@ func TestTokenService_GenerateToken(t *testing.T) {
 		{
 			name:    "OK",
 			context: context.Background(),
-			tokenFields: auth.TokenFileds{
+			tokenFields: jwt.TokenFileds{
 				ID:   "123",
 				Role: "User",
 			},
 
-			mockTokens: func(tokenFields auth.TokenFileds, key string) (accessToken string, refreshToken string) {
-				generateAccessToken, _ := auth.GenerateToken(tokenFields, key)
-				generateRefreshToken, _ := auth.GenerateRefreshToken()
+			mockTokens: func(tokenFields jwt.TokenFileds, key string) (accessToken string, refreshToken string) {
+				generateAccessToken, _ := jwt.GenerateToken(tokenFields, key)
+				generateRefreshToken, _ := jwt.GenerateRefreshToken()
 				return generateAccessToken, generateRefreshToken
 			},
 			expectedError: nil,
@@ -41,11 +42,11 @@ func TestTokenService_GenerateToken(t *testing.T) {
 		{
 			name:    "set in storage failed",
 			context: context.Background(),
-			tokenFields: auth.TokenFileds{
+			tokenFields: jwt.TokenFileds{
 				ID:   "123",
 				Role: "User",
 			},
-			mockTokens: func(tokenFileds auth.TokenFileds, key string) (accessToken string, refreshToken string) {
+			mockTokens: func(tokenFileds jwt.TokenFileds, key string) (accessToken string, refreshToken string) {
 				return "", ""
 			},
 			expectedError: fmt.Errorf("set error"),
@@ -59,8 +60,8 @@ func TestTokenService_GenerateToken(t *testing.T) {
 			expire := time.Duration(30) * time.Hour * 24
 			tokenStorage := mocks.NewTokenStorage(t)
 
-			generateAccessToken, _ := auth.GenerateToken(testCase.tokenFields, key)
-			generateRefreshToken, _ := auth.GenerateRefreshToken()
+			generateAccessToken, _ := jwt.GenerateToken(testCase.tokenFields, key)
+			generateRefreshToken, _ := jwt.GenerateRefreshToken()
 
 			tokenStorage.On("SetToken", testCase.context, testCase.tokenFields.ID,
 				generateRefreshToken, expire).

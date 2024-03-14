@@ -27,7 +27,15 @@ const (
 )
 
 func (handler *AuthHandler) Register(router *http.ServeMux) {
-	router.HandleFunc(signInURL, handler.SignInHandle)
+	router.HandleFunc(signInURL, handler.loginRouting)
+}
+
+func (handler *AuthHandler) loginRouting(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		handler.SignInHandle(w, r)
+	} else {
+		w.WriteHeader(http.StatusNotFound)
+	}
 }
 
 // SignIn	godoc
