@@ -25,20 +25,29 @@ func NewActorsHandler(logger *slog.Logger, actorsService actor.ActorsService, mi
 }
 
 const (
-	addActor = "/actor"
+	addActor  = "/actor"
+	getActors = "/actors"
 )
 
 func (handler *ActorsHandler) Register(router *http.ServeMux) {
 	actorsHandler := http.HandlerFunc(handler.ActorsRouting)
-	router.Handle(addActor, handler.middleware.Auth(actorsHandler))
+
+	router.Handle(addActor, handler.middleware.Auth(handler.middleware.AdminAuth(actorsHandler)))
+	router.Handle(getActors, handler.middleware.Auth(actorsHandler))
 }
 
 func (handler *ActorsHandler) ActorsRouting(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
+	if r.URL.Path == addActor && r.Method == http.MethodPost {
 		handler.AddActor(w, r)
-	} else {
-		NewRespWriter(w, "", http.StatusNotFound, handler.logger)
+		return
 	}
+
+	if r.URL.Path == getActors && r.Method == http.MethodGet {
+		handler.GetActors(w, r)
+		return
+	}
+	NewRespWriter(w, "", http.StatusNotFound, handler.logger)
+
 }
 
 func (handler *ActorsHandler) AddActor(w http.ResponseWriter, r *http.Request) {
@@ -80,4 +89,31 @@ func (handler *ActorsHandler) AddActor(w http.ResponseWriter, r *http.Request) {
 
 	NewRespWriter(w, id, http.StatusCreated, handler.logger)
 	handler.logger.Info("successful actor insert", slog.Any("actor", actor))
+}
+
+func (handler *ActorsHandler) GetActors(w http.ResponseWriter, r *http.Request) {
+	handler.logger.Info("get actors")
+
+	actors, err := handler.actorsServce.GetActors(r.Context())
+	if err != nil {
+		handler.logger.Warn("actor service error", slog.Any("error", err))
+		NewRespWriter(w, err.Error(), http.StatusInternalServerError, handler.logger)
+		return
+	}
+
+	handler.logger.Debug("marshal actors")
+	res, err := json.Marshal(actors)
+	if err != nil {
+		handler.logger.Error("actor marshaling failed", slog.Any("error", err))
+		NewRespWriter(w, err.Error(), http.StatusInternalServerError, handler.logger)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	if _, err = w.Write(res); err != nil {
+		handler.logger.Error("writing in body failed", slog.Any("error", err))
+		NewRespWriter(w, err.Error(), http.StatusInternalServerError, handler.logger)
+		return
+	}
+	handler.logger.Info("successful user select")
 }

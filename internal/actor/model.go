@@ -14,8 +14,8 @@ const (
 )
 
 type Actor struct {
-	id        uuid.UUID
-	name      string
-	gender    Gender
-	birthDate time.Time
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	Gender    Gender    `json:"gender"`
+	BirthDate time.Time `json:"birth_date"`
 }

@@ -66,3 +66,7 @@ func TestAddActor(t *testing.T) {
 		})
 	}
 }
+
+func TestGetActors(t *testing.T) {
+
+}

@@ -12,9 +12,9 @@ CREATE TYPE actors_gender AS enum ('Male', 'Female');
 
 CREATE TABLE IF NOT EXISTS actors(
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255),
-    gender actors_gender,
-    birth_date DATE
+    name VARCHAR(255) NOT NULL,
+    gender actors_gender NOT NULL,
+    birth_date DATE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS films(

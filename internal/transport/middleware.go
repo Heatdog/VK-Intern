@@ -51,13 +51,39 @@ func (mid *Middleware) Auth(next http.Handler) http.Handler {
 		}
 
 		mid.logger.Debug("got access token")
-		err := mid.verifyTokenHeader(header)
+		_, err := mid.verifyTokenHeader(header)
 		if err != nil {
 			mid.logger.Warn("auth header err", slog.Any("err", err))
 			NewRespWriter(w, err.Error(), http.StatusUnauthorized, mid.logger)
 			return
 		}
 
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (mid *Middleware) AdminAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mid.logger.Debug("verify admin token")
+		header := r.Header.Get("Authorization")
+		if header == "" {
+			mid.logger.Debug("access header empty")
+			NewRespWriter(w, "access header empty", http.StatusUnauthorized, mid.logger)
+			return
+		}
+
+		mid.logger.Debug("got access token")
+		fileds, err := mid.verifyTokenHeader(header)
+		if err != nil {
+			mid.logger.Warn("auth header err", slog.Any("err", err))
+			NewRespWriter(w, err.Error(), http.StatusUnauthorized, mid.logger)
+			return
+		}
+		if fileds.Role != "Admin" {
+			mid.logger.Warn("permission denied")
+			NewRespWriter(w, "permission denied", http.StatusForbidden, mid.logger)
+			return
+		}
 		next.ServeHTTP(w, r)
 	})
 }
@@ -89,23 +115,24 @@ func (mid *Middleware) emptyAccessTokenHeader(r *http.Request) (string, string, 
 	return newAccessToken, newRefreshToken, expire, nil
 }
 
-func (mid *Middleware) verifyTokenHeader(header string) error {
+func (mid *Middleware) verifyTokenHeader(header string) (*jwt.TokenFileds, error) {
 	headers := strings.Split(header, " ")
 	if len(headers) != 2 {
 		err := fmt.Errorf("wrong scheame of auth header")
 		mid.logger.Warn("auth header err", slog.Any("err", err))
-		return err
+		return nil, err
 	}
 
 	if headers[0] != "Bearer" {
 		err := fmt.Errorf("wrong scheame of auth header")
 		mid.logger.Warn("auth header err", slog.Any("err", err))
-		return err
+		return nil, err
 	}
 
-	if _, err := jwt.VerifyToken(headers[1], mid.key); err != nil {
+	fields, err := jwt.VerifyToken(headers[1], mid.key)
+	if err != nil {
 		mid.logger.Warn("auth header err", slog.Any("err", err))
-		return err
+		return nil, err
 	}
-	return nil
+	return fields, nil
 }
