@@ -8,6 +8,7 @@ import (
 
 	"github.com/Heater_dog/Vk_Intern/internal/actor"
 	"github.com/asaskevich/govalidator"
+	"github.com/google/uuid"
 )
 
 type ActorsHandler struct {
@@ -25,8 +26,10 @@ func NewActorsHandler(logger *slog.Logger, actorsService actor.ActorsService, mi
 }
 
 const (
-	addActor  = "/actor"
-	getActors = "/actors"
+	addActor    = "/actor/insert"
+	getActors   = "/actors"
+	deleteActor = "/actor/delete"
+	updateActor = "/actor/update"
 )
 
 func (handler *ActorsHandler) Register(router *http.ServeMux) {
@@ -34,6 +37,8 @@ func (handler *ActorsHandler) Register(router *http.ServeMux) {
 
 	router.Handle(addActor, handler.middleware.Auth(handler.middleware.AdminAuth(actorsHandler)))
 	router.Handle(getActors, handler.middleware.Auth(actorsHandler))
+	router.Handle(deleteActor, handler.middleware.Auth(handler.middleware.AdminAuth(actorsHandler)))
+	router.Handle(updateActor, handler.middleware.Auth(handler.middleware.AdminAuth(actorsHandler)))
 }
 
 func (handler *ActorsHandler) ActorsRouting(w http.ResponseWriter, r *http.Request) {
@@ -42,16 +47,41 @@ func (handler *ActorsHandler) ActorsRouting(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	if r.URL.Path == deleteActor && r.Method == http.MethodDelete {
+		handler.DeleteActor(w, r)
+		return
+	}
+
 	if r.URL.Path == getActors && r.Method == http.MethodGet {
 		handler.GetActors(w, r)
 		return
 	}
-	NewRespWriter(w, "", http.StatusNotFound, handler.logger)
+
+	if r.URL.Path == updateActor && r.Method == http.MethodPut {
+		handler.UpdateActor(w, r)
+		return
+	}
+
+	NewRespWriter(w, "not found", http.StatusNotFound, handler.logger)
 
 }
 
+// Добавление актера
+// @Summary AddActor
+// @Security ApiKeyAuth
+// @Description Добавление актера в систему
+// @Tags actors
+// @ID add-actor
+// @Accept json
+// @Produce json
+// @Param input body actor.ActorInsert true "actor info"
+// @Success 200 {object} RespWriter
+// @Failure 400 {object} RespWriter
+// @Failure 403 {object} RespWriter
+// @Failure 500 {object} RespWriter
+// @Router /actor/insert [post]
 func (handler *ActorsHandler) AddActor(w http.ResponseWriter, r *http.Request) {
-	handler.logger.Info("add actor")
+	handler.logger.Info("add actor handler")
 
 	handler.logger.Debug("read request body")
 	data, err := io.ReadAll(r.Body)
@@ -91,8 +121,21 @@ func (handler *ActorsHandler) AddActor(w http.ResponseWriter, r *http.Request) {
 	handler.logger.Info("successful actor insert", slog.Any("actor", actor))
 }
 
+// Получение списка актеров
+// @Summary GetActors
+// @Security ApiKeyAuth
+// @Description Получение актеров из системы. Вместе с актерами выводится список фильмов.
+// @Tags actors
+// @ID get-actors
+// @Accept json
+// @Produce json
+// @Success 200 {object} RespWriter
+// @Failure 400 {object} RespWriter
+// @Failure 403 {object} RespWriter
+// @Failure 500 {object} RespWriter
+// @Router /actors [get]
 func (handler *ActorsHandler) GetActors(w http.ResponseWriter, r *http.Request) {
-	handler.logger.Info("get actors")
+	handler.logger.Info("get actors handler")
 
 	actors, err := handler.actorsServce.GetActors(r.Context())
 	if err != nil {
@@ -116,4 +159,96 @@ func (handler *ActorsHandler) GetActors(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	handler.logger.Info("successful user select")
+}
+
+type ActorId struct {
+	ID uuid.UUID `json:"id"`
+}
+
+// удаление актера
+// @Summary DeleteActor
+// @Security ApiKeyAuth
+// @Description Удаление актера из системы
+// @Tags actors
+// @ID delete-actor
+// @Accept json
+// @Produce json
+// @Param input body ActorId true "actor id"
+// @Success 200 {object} RespWriter
+// @Failure 400 {object} RespWriter
+// @Failure 403 {object} RespWriter
+// @Failure 500 {object} RespWriter
+// @Router /actor/delete [delete]
+func (handler *ActorsHandler) DeleteActor(w http.ResponseWriter, r *http.Request) {
+	handler.logger.Info("delete actor handler")
+
+	handler.logger.Debug("read request body")
+	data, err := io.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		handler.logger.Error("request body reading failed", slog.Any("error", err))
+		NewRespWriter(w, err.Error(), http.StatusBadRequest, handler.logger)
+		return
+	}
+
+	handler.logger.Debug("unmasrhaling data", slog.String("data", string(data)))
+	reqId := ActorId{}
+	if err = json.Unmarshal(data, &reqId); err != nil {
+		handler.logger.Warn("request body scheme error", slog.Any("error", err))
+		NewRespWriter(w, err.Error(), http.StatusBadRequest, handler.logger)
+		return
+	}
+
+	handler.logger.Info("delete actor", slog.Any("id", reqId.ID))
+	if err = handler.actorsServce.DeleteActor(r.Context(), reqId.ID); err != nil {
+		handler.logger.Warn("actor serevice error")
+		NewRespWriter(w, "actor serevice error", http.StatusInternalServerError, handler.logger)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	handler.logger.Info("successful user delete")
+}
+
+// Обновление информации актера
+// @Summary UpdateActor
+// @Security ApiKeyAuth
+// @Description Обновление информации об акетре в системе
+// @Tags actors
+// @ID update-actor
+// @Accept json
+// @Produce json
+// @Param input body actor.UpdateActor true "actor fields"
+// @Success 200 {object} RespWriter
+// @Failure 400 {object} RespWriter
+// @Failure 403 {object} RespWriter
+// @Failure 500 {object} RespWriter
+// @Router /actor/update [put]
+func (handler *ActorsHandler) UpdateActor(w http.ResponseWriter, r *http.Request) {
+	handler.logger.Info("update actor handler")
+
+	handler.logger.Debug("read request body")
+	data, err := io.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		handler.logger.Error("request body reading failed", slog.Any("error", err))
+		NewRespWriter(w, err.Error(), http.StatusBadRequest, handler.logger)
+		return
+	}
+
+	handler.logger.Debug("unmasrhaling data", slog.String("data", string(data)))
+	updatedFields := actor.UpdateActor{}
+	if err = json.Unmarshal(data, &updatedFields); err != nil {
+		handler.logger.Warn("request body scheme error", slog.Any("error", err))
+		NewRespWriter(w, err.Error(), http.StatusBadRequest, handler.logger)
+		return
+	}
+
+	handler.logger.Info("update actor", slog.Any("id", updatedFields.ID))
+	if err = handler.actorsServce.UpdateActor(r.Context(), updatedFields); err != nil {
+		handler.logger.Warn("actor serevice error")
+		NewRespWriter(w, "actor serevice error", http.StatusInternalServerError, handler.logger)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	handler.logger.Info("successful user update")
 }

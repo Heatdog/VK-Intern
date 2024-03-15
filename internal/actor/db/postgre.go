@@ -2,6 +2,7 @@ package dbActor
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/Heater_dog/Vk_Intern/internal/actor"
@@ -68,4 +69,87 @@ func (repo *repository) GetActors(ctx context.Context) ([]actor.Actor, error) {
 		res = append(res, actor)
 	}
 	return res, nil
+}
+
+func (repo *repository) DeleteActor(ctx context.Context, id uuid.UUID) error {
+	repo.logger.Info("delete actor from repo")
+	q := `
+			DELETE FROM actors
+			WHERE id = $1
+	`
+	repo.logger.Debug("actor repo query", slog.String("query", q))
+	commandTag, err := repo.dbClient.Exec(ctx, q, id)
+	if err != nil {
+		repo.logger.Error("SQL error", slog.Any("err", err))
+		return err
+	}
+
+	if commandTag.RowsAffected() != 1 {
+		return fmt.Errorf("No row found to delete")
+	}
+
+	return nil
+}
+
+func (repo *repository) UpdateName(ctx context.Context, id uuid.UUID, name string) error {
+	repo.logger.Info("update name actor in repo")
+	q := `
+			UPDATE actors SET name = $1
+			WHERE id = $2
+	`
+
+	repo.logger.Debug("actor repo query", slog.String("query", q))
+	commandTag, err := repo.dbClient.Exec(ctx, q, name, id)
+	if err != nil {
+		repo.logger.Error("SQL error", slog.Any("err", err))
+		return err
+	}
+
+	if commandTag.RowsAffected() != 1 {
+		return fmt.Errorf("No row found to delete")
+	}
+
+	return nil
+}
+
+func (repo *repository) UpdateGender(ctx context.Context, id uuid.UUID, gender string) error {
+	repo.logger.Info("update gender actor in repo")
+	q := `
+			UPDATE actors SET gender = $1
+			WHERE id = $2
+	`
+
+	repo.logger.Debug("actor repo query", slog.String("query", q))
+	commandTag, err := repo.dbClient.Exec(ctx, q, gender, id)
+	if err != nil {
+		repo.logger.Error("SQL error", slog.Any("err", err))
+		return err
+	}
+
+	if commandTag.RowsAffected() != 1 {
+		return fmt.Errorf("No row found to delete")
+	}
+
+	return nil
+}
+
+func (repo *repository) UpdateBirthDate(ctx context.Context, id uuid.UUID, birthDate string) error {
+	repo.logger.Info("update birth date actor in repo")
+	q := `
+			UPDATE actors SET birth_date = $1
+			WHERE id = $2
+	`
+
+	repo.logger.Debug("actor repo query", slog.String("query", q))
+	commandTag, err := repo.dbClient.Exec(ctx, q, birthDate, id)
+	if err != nil {
+		repo.logger.Error("SQL error", slog.Any("err", err))
+		return err
+	}
+
+	if commandTag.RowsAffected() != 1 {
+		return fmt.Errorf("No row found to delete")
+	}
+
+	return nil
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/Heater_dog/Vk_Intern/internal/film"
 	"github.com/asaskevich/govalidator"
+	"github.com/google/uuid"
 )
 
 func init() {
@@ -28,4 +29,11 @@ type ActorInsert struct {
 type ActorFilms struct {
 	Actor Actor       `json:"actor"`
 	Films []film.Film `json:"films"`
+}
+
+type UpdateActor struct {
+	ID        uuid.UUID `json:"id" valid:",required"`
+	Name      string    `json:"name"`
+	BirthDate string    `json:"birth_date" valid:"date"`
+	Gender    string    `json:"gender" valid:"gender"`
 }

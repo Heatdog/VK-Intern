@@ -1,6 +1,31 @@
 basePath: /
 definitions:
-  respwriter.RespWriter:
+  actor.ActorInsert:
+    properties:
+      birth_date:
+        type: string
+      gender:
+        type: string
+      name:
+        type: string
+    type: object
+  actor.UpdateActor:
+    properties:
+      birth_date:
+        type: string
+      gender:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  transport.ActorId:
+    properties:
+      id:
+        type: string
+    type: object
+  transport.RespWriter:
     properties:
       message:
         type: string
@@ -18,11 +43,153 @@ info:
   description: API server for Фильмотека
   title: Фильмотека
 paths:
+  /actor/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Удаление актера из системы
+      operationId: delete-actor
+      parameters:
+      - description: actor id
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/transport.ActorId'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+      security:
+      - ApiKeyAuth: []
+      summary: DeleteActor
+      tags:
+      - actors
+  /actor/insert:
+    post:
+      consumes:
+      - application/json
+      description: Добавление актера в систему
+      operationId: add-actor
+      parameters:
+      - description: actor info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/actor.ActorInsert'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+      security:
+      - ApiKeyAuth: []
+      summary: AddActor
+      tags:
+      - actors
+  /actor/update:
+    put:
+      consumes:
+      - application/json
+      description: Обновление информации об акетре в системе
+      operationId: update-actor
+      parameters:
+      - description: actor fields
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/actor.UpdateActor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+      security:
+      - ApiKeyAuth: []
+      summary: UpdateActor
+      tags:
+      - actors
+  /actors:
+    get:
+      consumes:
+      - application/json
+      description: Получение актеров из системы. Вместе с актерами выводится список
+        фильмов.
+      operationId: get-actors
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+      security:
+      - ApiKeyAuth: []
+      summary: GetActors
+      tags:
+      - actors
   /login:
     post:
       consumes:
       - application/json
-      description: sign in web site
+      description: Вход в систему. При успешном входе выдаются refresh и access токены.
       operationId: sign-in
       parameters:
       - description: account info
@@ -41,11 +208,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/respwriter.RespWriter'
+            $ref: '#/definitions/transport.RespWriter'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/respwriter.RespWriter'
+            $ref: '#/definitions/transport.RespWriter'
       summary: SignIn
       tags:
       - auth

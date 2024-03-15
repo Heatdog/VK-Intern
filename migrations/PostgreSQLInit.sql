@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS actors_to_films (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     actor_id UUID NOT NULL,
     film_id UUID NOT NULL,
-    CONSTRAINT "FK_actor_id" FOREIGN KEY ("actor_id") REFERENCES "actors" ("id"),
-    CONSTRAINT "FK_film_id" FOREIGN KEY ("film_id") REFERENCES "films" ("id")
+    CONSTRAINT "FK_actor_id" FOREIGN KEY ("actor_id") REFERENCES "actors" ("id") ON DELETE CASCADE,
+    CONSTRAINT "FK_film_id" FOREIGN KEY ("film_id") REFERENCES "films" ("id") ON DELETE CASCADE
 );
 
 CREATE UNIQUE INDEX "actors_to_films_actor_id_film_id"

@@ -27,8 +27,7 @@ func (repo *repository) GetFilmsWithActor(ctx context.Context, userID uuid.UUID)
 			SELECT f.id, f.title, f.description, f.release_date, f.rating
 			FROM films f
 			LEFT JOIN actors_to_films af ON af.film_id = f.id
-			WHERE af.user_id = $1
-			
+			WHERE af.actor_id = $1
 	`
 
 	repo.logger.Debug("films repo query", slog.String("query", q))

@@ -38,17 +38,17 @@ func (handler *AuthHandler) LoginRouting(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-// SignIn	godoc
+// Вход в систему
 // @Summary SignIn
 // @Tags auth
-// @Description sign in web site
+// @Description Вход в систему. При успешном входе выдаются refresh и access токены.
 // @ID sign-in
 // @Accept json
 // @Produce json
 // @Param input body user.UserLogin true "account info"
 // @Success 200 {integer} integer 1
-// @Failure 400 {object} respWriter
-// @Failure 500 {object} respWriter
+// @Failure 400 {object} RespWriter
+// @Failure 500 {object} RespWriter
 // @Router /login [post]
 func (handler *AuthHandler) SignInHandle(w http.ResponseWriter, r *http.Request) {
 	handler.logger.Info("sign in user")
@@ -95,9 +95,9 @@ func (handler *AuthHandler) SignInHandle(w http.ResponseWriter, r *http.Request)
 		Value:    refreshToken,
 		HttpOnly: true,
 		Expires:  expire,
-		Secure:   true,
+		Path:     "/",
 	})
-	w.Header().Set("Authorization", "Bearer "+accessToken)
+	w.Header().Set("authorization", "Bearer "+accessToken)
 	NewRespWriter(w, "", http.StatusOK, handler.logger)
 	handler.logger.Info("successful auth", slog.String("user", user.Login))
 }

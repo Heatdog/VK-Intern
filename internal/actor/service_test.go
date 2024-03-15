@@ -8,7 +8,8 @@ import (
 	"testing"
 
 	"github.com/Heater_dog/Vk_Intern/internal/actor"
-	"github.com/Heater_dog/Vk_Intern/internal/actor/mocks"
+	actorMock "github.com/Heater_dog/Vk_Intern/internal/actor/mocks"
+	filmMock "github.com/Heater_dog/Vk_Intern/internal/film/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -50,11 +51,13 @@ func TestAddActor(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			logger := slog.New(slog.NewJSONHandler(io.Discard, nil))
 
-			actorRepo := mocks.NewActorsRepository(t)
+			filmRepo := filmMock.NewFilmsRepository(t)
+
+			actorRepo := actorMock.NewActorsRepository(t)
 			actorRepo.On("AddActor", testCase.context, testCase.actorInsert).
 				Return(testCase.expectedId, testCase.expectedError)
 
-			actorService := actor.NewActorsService(logger, actorRepo)
+			actorService := actor.NewActorsService(logger, actorRepo, filmRepo)
 
 			id, err := actorService.InsertActor(testCase.context, testCase.actorInsert)
 			if !assert.Equal(t, testCase.expectedId, id) {

@@ -29,8 +29,9 @@ func (mid *Middleware) Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mid.logger.Debug("verify access token")
 
-		header := r.Header.Get("Authorization")
+		header := r.Header.Get("authorization")
 		if header == "" {
+			mid.logger.Debug("header is empty")
 			newAccessToken, newRefreshToken, expire, err := mid.emptyAccessTokenHeader(r)
 			if err != nil {
 				mid.logger.Info("access header error")
@@ -38,19 +39,30 @@ func (mid *Middleware) Auth(next http.Handler) http.Handler {
 				return
 			}
 
+			mid.logger.Debug("set new refresh token", slog.String("token", newRefreshToken))
 			http.SetCookie(w, &http.Cookie{
 				Name:     "token",
 				Value:    newRefreshToken,
 				HttpOnly: true,
 				Expires:  expire,
-				Secure:   true,
+				Path:     "/",
 			})
-			w.Header().Set("Authorization", "Bearer "+newAccessToken)
+			r.AddCookie(&http.Cookie{
+				Name:     "token",
+				Value:    newRefreshToken,
+				HttpOnly: true,
+				Expires:  expire,
+				Path:     "/",
+			})
+			mid.logger.Debug("set new access token", slog.String("token", newAccessToken))
+			r.Header.Set("authorization", "Bearer "+newAccessToken)
+			w.Header().Set("authorization", "Bearer "+newAccessToken)
 
 			next.ServeHTTP(w, r)
+			return
 		}
 
-		mid.logger.Debug("got access token")
+		mid.logger.Debug("got access token", slog.String("token", header))
 		_, err := mid.verifyTokenHeader(header)
 		if err != nil {
 			mid.logger.Warn("auth header err", slog.Any("err", err))
@@ -65,7 +77,8 @@ func (mid *Middleware) Auth(next http.Handler) http.Handler {
 func (mid *Middleware) AdminAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mid.logger.Debug("verify admin token")
-		header := r.Header.Get("Authorization")
+		header := r.Header.Get("authorization")
+		mid.logger.Debug("Get token", slog.String("token", header))
 		if header == "" {
 			mid.logger.Debug("access header empty")
 			NewRespWriter(w, "access header empty", http.StatusUnauthorized, mid.logger)
@@ -99,14 +112,14 @@ func (mid *Middleware) getRefreshToken(r *http.Request) (string, error) {
 
 func (mid *Middleware) emptyAccessTokenHeader(r *http.Request) (string, string, time.Time, error) {
 	mid.logger.Debug("empty token header")
-	refreshToken, err := mid.getRefreshToken(r)
+	oldRefreshToken, err := mid.getRefreshToken(r)
 	if err != nil {
 		mid.logger.Info("empty refresh token cookie")
 		return "", "", time.Time{}, err
 	}
 
 	newAccessToken, newRefreshToken, expire, err := mid.authService.
-		VerifyToken(r.Context(), refreshToken)
+		VerifyToken(r.Context(), oldRefreshToken)
 
 	if err != nil {
 		mid.logger.Warn("auth serrvice err", slog.Any("err", err))
@@ -116,12 +129,19 @@ func (mid *Middleware) emptyAccessTokenHeader(r *http.Request) (string, string, 
 }
 
 func (mid *Middleware) verifyTokenHeader(header string) (*jwt.TokenFileds, error) {
+	mid.logger.Debug("check number of fields", slog.String("header", header))
+
+	fmt.Println(header)
 	headers := strings.Split(header, " ")
+	fmt.Println(header)
+	fmt.Println(headers[1])
 	if len(headers) != 2 {
 		err := fmt.Errorf("wrong scheame of auth header")
 		mid.logger.Warn("auth header err", slog.Any("err", err))
 		return nil, err
 	}
+
+	mid.logger.Debug("check scheame")
 
 	if headers[0] != "Bearer" {
 		err := fmt.Errorf("wrong scheame of auth header")
@@ -129,7 +149,9 @@ func (mid *Middleware) verifyTokenHeader(header string) (*jwt.TokenFileds, error
 		return nil, err
 	}
 
-	fields, err := jwt.VerifyToken(headers[1], mid.key)
+	mid.logger.Debug("verify token", slog.String("token", string(header[1])))
+
+	fields, err := jwt.VerifyToken(string(headers[1]), mid.key)
 	if err != nil {
 		mid.logger.Warn("auth header err", slog.Any("err", err))
 		return nil, err

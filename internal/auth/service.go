@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"strings"
 	"time"
 
 	"github.com/Heater_dog/Vk_Intern/pkg/jwt"
@@ -81,8 +80,9 @@ func (service *tokenService) VerifyToken(ctx context.Context, refreshToken strin
 	}
 
 	service.logger.Debug("got token from storage", slog.String("token", storagedToken))
-	if !strings.EqualFold(refreshToken, storagedToken) {
-		service.logger.Warn("tokens are not equal")
+	if refreshToken != storagedToken {
+		service.logger.Warn("tokens are not equal", slog.String("storagedToken", storagedToken),
+			slog.String("newToken", refreshToken))
 		return "", "", time.Time{}, fmt.Errorf("tokens are not equal")
 	}
 

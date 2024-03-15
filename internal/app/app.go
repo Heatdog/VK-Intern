@@ -8,9 +8,12 @@ import (
 	"os"
 
 	_ "github.com/Heater_dog/Vk_Intern/docs"
+	"github.com/Heater_dog/Vk_Intern/internal/actor"
+	actorDb "github.com/Heater_dog/Vk_Intern/internal/actor/db"
 	"github.com/Heater_dog/Vk_Intern/internal/auth"
 	authDb "github.com/Heater_dog/Vk_Intern/internal/auth/db"
 	"github.com/Heater_dog/Vk_Intern/internal/config"
+	filmDb "github.com/Heater_dog/Vk_Intern/internal/film/db"
 	migrations "github.com/Heater_dog/Vk_Intern/internal/migration"
 	"github.com/Heater_dog/Vk_Intern/internal/transport"
 	"github.com/Heater_dog/Vk_Intern/internal/user"
@@ -69,6 +72,14 @@ func App() {
 	userRepo := userDb.NewUserPostgreRepository(dbClient, logger)
 	userService := user.NewUserService(logger, userRepo, tokenService)
 	transport.NewAuthHandler(logger, userService).Register(mux)
+
+	mid := transport.NewMiddleware(logger, tokenService, cfg.PasswordKey)
+
+	filmRepo := filmDb.NewFilmsPostgreRepository(dbClient, logger)
+
+	actorRepo := actorDb.NewActorPostgreRepository(dbClient, logger)
+	actorService := actor.NewActorsService(logger, actorRepo, filmRepo)
+	transport.NewActorsHandler(logger, actorService, mid).Register(mux)
 
 	logger.Info("adding swagger documentation")
 	mux.HandleFunc("/swagger/", httpSwagger.Handler(
