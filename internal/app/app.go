@@ -16,10 +16,12 @@ import (
 	token_db "github.com/Heater_dog/Vk_Intern/internal/repository/token/db"
 	user_db "github.com/Heater_dog/Vk_Intern/internal/repository/user/db"
 	actor_service "github.com/Heater_dog/Vk_Intern/internal/services/actor"
+	film_service "github.com/Heater_dog/Vk_Intern/internal/services/film"
 	token_service "github.com/Heater_dog/Vk_Intern/internal/services/token"
 	user_service "github.com/Heater_dog/Vk_Intern/internal/services/user"
 	actor_transport "github.com/Heater_dog/Vk_Intern/internal/transport/actor"
 	auth_transport "github.com/Heater_dog/Vk_Intern/internal/transport/auth"
+	film_transport "github.com/Heater_dog/Vk_Intern/internal/transport/film"
 	middleware_transport "github.com/Heater_dog/Vk_Intern/internal/transport/middleware"
 	"github.com/Heater_dog/Vk_Intern/pkg/client/postgre"
 	redisStorage "github.com/Heater_dog/Vk_Intern/pkg/client/redis"
@@ -83,6 +85,9 @@ func App() {
 	actorRepo := actor_db.NewActorPostgreRepository(dbClient, logger)
 	actorService := actor_service.NewActorsService(logger, actorRepo, filmRepo)
 	actor_transport.NewActorsHandler(logger, actorService, mid).Register(mux)
+
+	filmService := film_service.NewFilmService(logger, filmRepo, actorRepo)
+	film_transport.NewFilmsHandler(logger, filmService, mid).Register(mux)
 
 	logger.Info("adding swagger documentation")
 	mux.HandleFunc("/swagger/", httpSwagger.Handler(

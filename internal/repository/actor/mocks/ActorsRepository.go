@@ -63,6 +63,34 @@ func (_m *ActorsRepository) DeleteActor(ctx context.Context, id uuid.UUID) error
 	return r0
 }
 
+// GetActor provides a mock function with given fields: ctx, id
+func (_m *ActorsRepository) GetActor(ctx context.Context, id string) (actor_model.Actor, error) {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetActor")
+	}
+
+	var r0 actor_model.Actor
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (actor_model.Actor, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) actor_model.Actor); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(actor_model.Actor)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetActors provides a mock function with given fields: ctx
 func (_m *ActorsRepository) GetActors(ctx context.Context) ([]actor_model.Actor, error) {
 	ret := _m.Called(ctx)

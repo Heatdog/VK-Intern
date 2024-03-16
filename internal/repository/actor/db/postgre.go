@@ -99,18 +99,7 @@ func (repo *repository) UpdateName(ctx context.Context, id uuid.UUID, name strin
 			WHERE id = $2
 	`
 
-	repo.logger.Debug("actor repo query", slog.String("query", q))
-	commandTag, err := repo.dbClient.Exec(ctx, q, name, id)
-	if err != nil {
-		repo.logger.Error("SQL error", slog.Any("err", err))
-		return err
-	}
-
-	if commandTag.RowsAffected() != 1 {
-		return fmt.Errorf("No row found to delete")
-	}
-
-	return nil
+	return repo.updateActor(ctx, q, id, name)
 }
 
 func (repo *repository) UpdateGender(ctx context.Context, id uuid.UUID, gender string) error {
@@ -120,18 +109,7 @@ func (repo *repository) UpdateGender(ctx context.Context, id uuid.UUID, gender s
 			WHERE id = $2
 	`
 
-	repo.logger.Debug("actor repo query", slog.String("query", q))
-	commandTag, err := repo.dbClient.Exec(ctx, q, gender, id)
-	if err != nil {
-		repo.logger.Error("SQL error", slog.Any("err", err))
-		return err
-	}
-
-	if commandTag.RowsAffected() != 1 {
-		return fmt.Errorf("No row found to delete")
-	}
-
-	return nil
+	return repo.updateActor(ctx, q, id, gender)
 }
 
 func (repo *repository) UpdateBirthDate(ctx context.Context, id uuid.UUID, birthDate string) error {
@@ -141,16 +119,42 @@ func (repo *repository) UpdateBirthDate(ctx context.Context, id uuid.UUID, birth
 			WHERE id = $2
 	`
 
-	repo.logger.Debug("actor repo query", slog.String("query", q))
-	commandTag, err := repo.dbClient.Exec(ctx, q, birthDate, id)
+	return repo.updateActor(ctx, q, id, birthDate)
+}
+
+func (repo *repository) updateActor(ctx context.Context, query string, id uuid.UUID, field string) error {
+	repo.logger.Debug("actor repo query", slog.String("query", query))
+	commandTag, err := repo.dbClient.Exec(ctx, query, field, id)
+
 	if err != nil {
 		repo.logger.Error("SQL error", slog.Any("err", err))
 		return err
 	}
 
 	if commandTag.RowsAffected() != 1 {
-		return fmt.Errorf("No row found to delete")
+		return fmt.Errorf("No row found to update")
 	}
 
 	return nil
+}
+
+func (repo *repository) GetActor(ctx context.Context, id string) (actor_model.Actor, error) {
+	repo.logger.Info("get actor from repo repo", slog.String("id", id))
+
+	q := `
+		SELECT id, name, gender, birth_date
+		FROM actors
+		WHERE id = $1
+	`
+	repo.logger.Debug("actor repo query", slog.String("query", q))
+	row := repo.dbClient.QueryRow(ctx, q, id)
+
+	var actor actor_model.Actor
+
+	if err := row.Scan(&actor.ID, &actor.Name, &actor.Gender, &actor.BirthDate); err != nil {
+		repo.logger.Error("SQL error", slog.Any("error", err))
+		return actor_model.Actor{}, err
+	}
+
+	return actor, nil
 }

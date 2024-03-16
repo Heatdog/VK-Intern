@@ -81,6 +81,7 @@ func (handler *ActorsHandler) ActorsRouting(w http.ResponseWriter, r *http.Reque
 // @Param input body actor_model.ActorInsert true "actor info"
 // @Success 200 {object} transport.RespWriter
 // @Failure 400 {object} transport.RespWriter
+// @Failure 401 {object} transport.RespWriter
 // @Failure 403 {object} transport.RespWriter
 // @Failure 500 {object} transport.RespWriter
 // @Router /actor/insert [post]
@@ -135,6 +136,7 @@ func (handler *ActorsHandler) AddActor(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Success 200 {object} transport.RespWriter
 // @Failure 400 {object} transport.RespWriter
+// @Failure 401 {object} transport.RespWriter
 // @Failure 403 {object} transport.RespWriter
 // @Failure 500 {object} transport.RespWriter
 // @Router /actors [get]
@@ -180,6 +182,7 @@ type ActorId struct {
 // @Param input body ActorId true "actor id"
 // @Success 200 {object} transport.RespWriter
 // @Failure 400 {object} transport.RespWriter
+// @Failure 401 {object} transport.RespWriter
 // @Failure 403 {object} transport.RespWriter
 // @Failure 500 {object} transport.RespWriter
 // @Router /actor/delete [delete]
@@ -224,6 +227,7 @@ func (handler *ActorsHandler) DeleteActor(w http.ResponseWriter, r *http.Request
 // @Param input body actor_model.UpdateActor true "actor fields"
 // @Success 200 {object} transport.RespWriter
 // @Failure 400 {object} transport.RespWriter
+// @Failure 401 {object} transport.RespWriter
 // @Failure 403 {object} transport.RespWriter
 // @Failure 500 {object} transport.RespWriter
 // @Router /actor/update [put]

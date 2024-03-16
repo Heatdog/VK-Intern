@@ -26,7 +26,7 @@ type ActorInsert struct {
 }
 
 type UpdateActor struct {
-	ID        uuid.UUID `json:"id" valid:",required"`
+	ID        uuid.UUID `json:"id" valid:"uuid,required"`
 	Name      string    `json:"name"`
 	BirthDate string    `json:"birth_date" valid:"date"`
 	Gender    string    `json:"gender" valid:"gender"`

@@ -20,6 +20,43 @@ definitions:
       name:
         type: string
     type: object
+  film_model.FilmInsert:
+    properties:
+      actors:
+        items:
+          $ref: '#/definitions/film_model.Id'
+        type: array
+      description:
+        type: string
+      rating:
+        type: string
+      release_date:
+        type: string
+      title:
+        type: string
+    type: object
+  film_model.Id:
+    properties:
+      id:
+        type: string
+    type: object
+  film_model.UpdateFilm:
+    properties:
+      actors:
+        items:
+          $ref: '#/definitions/film_model.Id'
+        type: array
+      description:
+        type: string
+      id:
+        type: string
+      rating:
+        type: string
+      release_date:
+        type: string
+      title:
+        type: string
+    type: object
   github.com_Heater_dog_Vk_Intern_internal_transport_actor.ActorId:
     properties:
       id:
@@ -72,6 +109,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/transport.RespWriter'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
         "403":
           description: Forbidden
           schema:
@@ -107,6 +148,10 @@ paths:
             $ref: '#/definitions/transport.RespWriter'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/transport.RespWriter'
         "403":
@@ -146,6 +191,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/transport.RespWriter'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
         "403":
           description: Forbidden
           schema:
@@ -177,6 +226,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/transport.RespWriter'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
         "403":
           description: Forbidden
           schema:
@@ -190,6 +243,131 @@ paths:
       summary: GetActors
       tags:
       - actors
+  /film/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Удаление фильма в системе
+      operationId: delete-film
+      parameters:
+      - description: actor fields
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/film_model.Id'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+      security:
+      - ApiKeyAuth: []
+      summary: DeleteFilm
+      tags:
+      - films
+  /film/insert:
+    post:
+      consumes:
+      - application/json
+      description: Добавление фильма в систему
+      operationId: add-film
+      parameters:
+      - description: actor fields
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/film_model.FilmInsert'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+      security:
+      - ApiKeyAuth: []
+      summary: InsertFilm
+      tags:
+      - films
+  /film/update:
+    put:
+      consumes:
+      - application/json
+      description: |-
+        Обновление фильма в системе. Возомжно обновлять как частично, так и полностью все поля.
+        Если указать список id актеров, список актеров в фильме заменится переданным.
+      operationId: update-film
+      parameters:
+      - description: actor fields
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/film_model.UpdateFilm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/transport.RespWriter'
+      security:
+      - ApiKeyAuth: []
+      summary: UpdateFilm
+      tags:
+      - films
   /login:
     post:
       consumes:
