@@ -8,16 +8,19 @@ import (
 	"os"
 
 	_ "github.com/Heater_dog/Vk_Intern/docs"
-	"github.com/Heater_dog/Vk_Intern/internal/actor"
-	actorDb "github.com/Heater_dog/Vk_Intern/internal/actor/db"
-	"github.com/Heater_dog/Vk_Intern/internal/auth"
-	authDb "github.com/Heater_dog/Vk_Intern/internal/auth/db"
+
 	"github.com/Heater_dog/Vk_Intern/internal/config"
-	filmDb "github.com/Heater_dog/Vk_Intern/internal/film/db"
 	migrations "github.com/Heater_dog/Vk_Intern/internal/migration"
-	"github.com/Heater_dog/Vk_Intern/internal/transport"
-	"github.com/Heater_dog/Vk_Intern/internal/user"
-	userDb "github.com/Heater_dog/Vk_Intern/internal/user/db"
+	actor_db "github.com/Heater_dog/Vk_Intern/internal/repository/actor/db"
+	film_db "github.com/Heater_dog/Vk_Intern/internal/repository/film/db"
+	token_db "github.com/Heater_dog/Vk_Intern/internal/repository/token/db"
+	user_db "github.com/Heater_dog/Vk_Intern/internal/repository/user/db"
+	actor_service "github.com/Heater_dog/Vk_Intern/internal/services/actor"
+	token_service "github.com/Heater_dog/Vk_Intern/internal/services/token"
+	user_service "github.com/Heater_dog/Vk_Intern/internal/services/user"
+	actor_transport "github.com/Heater_dog/Vk_Intern/internal/transport/actor"
+	auth_transport "github.com/Heater_dog/Vk_Intern/internal/transport/auth"
+	middleware_transport "github.com/Heater_dog/Vk_Intern/internal/transport/middleware"
 	"github.com/Heater_dog/Vk_Intern/pkg/client/postgre"
 	redisStorage "github.com/Heater_dog/Vk_Intern/pkg/client/redis"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
@@ -66,20 +69,20 @@ func App() {
 
 	mux := http.NewServeMux()
 
-	tokenStorage := authDb.NewRedisTokenStorage(logger, redisClient)
-	tokenService := auth.NewTokenService(logger, tokenStorage, cfg.PasswordKey, cfg.Redis.TokenExparation)
+	tokenStorage := token_db.NewRedisTokenRepository(logger, redisClient)
+	tokenService := token_service.NewTokenService(logger, tokenStorage, cfg.PasswordKey, cfg.Redis.TokenExparation)
 
-	userRepo := userDb.NewUserPostgreRepository(dbClient, logger)
-	userService := user.NewUserService(logger, userRepo, tokenService)
-	transport.NewAuthHandler(logger, userService).Register(mux)
+	userRepo := user_db.NewUserPostgreRepository(dbClient, logger)
+	userService := user_service.NewUserService(logger, userRepo, tokenService)
+	auth_transport.NewAuthHandler(logger, userService).Register(mux)
 
-	mid := transport.NewMiddleware(logger, tokenService, cfg.PasswordKey)
+	mid := middleware_transport.NewMiddleware(logger, tokenService, cfg.PasswordKey)
 
-	filmRepo := filmDb.NewFilmsPostgreRepository(dbClient, logger)
+	filmRepo := film_db.NewFilmsPostgreRepository(dbClient, logger)
 
-	actorRepo := actorDb.NewActorPostgreRepository(dbClient, logger)
-	actorService := actor.NewActorsService(logger, actorRepo, filmRepo)
-	transport.NewActorsHandler(logger, actorService, mid).Register(mux)
+	actorRepo := actor_db.NewActorPostgreRepository(dbClient, logger)
+	actorService := actor_service.NewActorsService(logger, actorRepo, filmRepo)
+	actor_transport.NewActorsHandler(logger, actorService, mid).Register(mux)
 
 	logger.Info("adding swagger documentation")
 	mux.HandleFunc("/swagger/", httpSwagger.Handler(

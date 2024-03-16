@@ -42,7 +42,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/transport.ActorId"
+                            "$ref": "#/definitions/internal_transport_actor.ActorId"
                         }
                     }
                 ],
@@ -100,7 +100,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/actor.ActorInsert"
+                            "$ref": "#/definitions/actor_model.ActorInsert"
                         }
                     }
                 ],
@@ -158,7 +158,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/actor.UpdateActor"
+                            "$ref": "#/definitions/actor_model.UpdateActor"
                         }
                     }
                 ],
@@ -258,7 +258,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.UserLogin"
+                            "$ref": "#/definitions/user_model.UserLogin"
                         }
                     }
                 ],
@@ -286,7 +286,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "actor.ActorInsert": {
+        "actor_model.ActorInsert": {
             "type": "object",
             "properties": {
                 "birth_date": {
@@ -300,7 +300,7 @@ const docTemplate = `{
                 }
             }
         },
-        "actor.UpdateActor": {
+        "actor_model.UpdateActor": {
             "type": "object",
             "properties": {
                 "birth_date": {
@@ -317,7 +317,15 @@ const docTemplate = `{
                 }
             }
         },
-        "transport.ActorId": {
+        "github.com_Heater_dog_Vk_Intern_internal_transport_actor.ActorId": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_transport_actor.ActorId": {
             "type": "object",
             "properties": {
                 "id": {
@@ -333,7 +341,7 @@ const docTemplate = `{
                 }
             }
         },
-        "user.UserLogin": {
+        "user_model.UserLogin": {
             "type": "object",
             "properties": {
                 "login": {

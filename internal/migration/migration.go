@@ -3,46 +3,46 @@ package migrations
 import (
 	"context"
 
-	"github.com/Heater_dog/Vk_Intern/internal/user"
+	user_model "github.com/Heater_dog/Vk_Intern/internal/models/user"
 	"github.com/Heater_dog/Vk_Intern/pkg/client"
 	cryptohash "github.com/Heater_dog/Vk_Intern/pkg/cryptoHash"
 )
 
 func InitDb(client client.Client) error {
 	users := []struct {
-		User     user.User
+		User     user_model.User
 		Password string
 	}{
 		{
-			User: user.User{
+			User: user_model.User{
 				Login: "Admin",
 				Role:  "Admin",
 			},
 			Password: "Admin",
 		},
 		{
-			User: user.User{
+			User: user_model.User{
 				Login: "VK Senior",
 				Role:  "Admin",
 			},
 			Password: "678",
 		},
 		{
-			User: user.User{
+			User: user_model.User{
 				Login: "John",
 				Role:  "User",
 			},
 			Password: "123",
 		},
 		{
-			User: user.User{
+			User: user_model.User{
 				Login: "David",
 				Role:  "User",
 			},
 			Password: "123456",
 		},
 		{
-			User: user.User{
+			User: user_model.User{
 				Login: "Peter",
 				Role:  "User",
 			},

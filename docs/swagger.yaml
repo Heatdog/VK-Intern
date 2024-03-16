@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  actor.ActorInsert:
+  actor_model.ActorInsert:
     properties:
       birth_date:
         type: string
@@ -9,7 +9,7 @@ definitions:
       name:
         type: string
     type: object
-  actor.UpdateActor:
+  actor_model.UpdateActor:
     properties:
       birth_date:
         type: string
@@ -20,7 +20,12 @@ definitions:
       name:
         type: string
     type: object
-  transport.ActorId:
+  github.com_Heater_dog_Vk_Intern_internal_transport_actor.ActorId:
+    properties:
+      id:
+        type: string
+    type: object
+  internal_transport_actor.ActorId:
     properties:
       id:
         type: string
@@ -30,7 +35,7 @@ definitions:
       message:
         type: string
     type: object
-  user.UserLogin:
+  user_model.UserLogin:
     properties:
       login:
         type: string
@@ -55,7 +60,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/transport.ActorId'
+          $ref: '#/definitions/internal_transport_actor.ActorId'
       produces:
       - application/json
       responses:
@@ -92,7 +97,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/actor.ActorInsert'
+          $ref: '#/definitions/actor_model.ActorInsert'
       produces:
       - application/json
       responses:
@@ -129,7 +134,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/actor.UpdateActor'
+          $ref: '#/definitions/actor_model.UpdateActor'
       produces:
       - application/json
       responses:
@@ -197,7 +202,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/user.UserLogin'
+          $ref: '#/definitions/user_model.UserLogin'
       produces:
       - application/json
       responses:
