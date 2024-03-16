@@ -78,7 +78,7 @@ func (handler *FilmsHandler) FilmsRouting(w http.ResponseWriter, r *http.Request
 // @Accept json
 // @Produce json
 // @Param input body film_model.FilmInsert true "actor fields"
-// @Success 200 {object} transport.RespWriter
+// @Success 201 {object} transport.RespWriter
 // @Failure 400 {object} transport.RespWriter
 // @Failure 401 {object} transport.RespWriter
 // @Failure 403 {object} transport.RespWriter
@@ -105,7 +105,7 @@ func (handler *FilmsHandler) InsertFilm(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	handler.logger.Debug("validate film struct")
+	handler.logger.Debug("validate film struct", slog.Any("struct", film))
 	_, err = govalidator.ValidateStruct(film)
 	if err != nil {
 		handler.logger.Warn("struct validate failed", slog.Any("error", err))
@@ -121,7 +121,7 @@ func (handler *FilmsHandler) InsertFilm(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	transport.NewRespWriter(w, id, http.StatusOK, handler.logger)
+	transport.NewRespWriter(w, id, http.StatusCreated, handler.logger)
 	handler.logger.Info("successful film insert", slog.String("film", id))
 }
 
@@ -245,6 +245,8 @@ func (handler *FilmsHandler) DeleteFilm(w http.ResponseWriter, r *http.Request) 
 // @ID get-films
 // @Accept json
 // @Produce json
+// @Param order query string true "type of order"
+// @Param type query string true "asc or desc"
 // @Success 200 {object} []film_model.Film
 // @Failure 400 {object} transport.RespWriter
 // @Failure 401 {object} transport.RespWriter

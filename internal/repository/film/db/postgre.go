@@ -77,7 +77,7 @@ func (repo *repository) InsertFilm(ctx context.Context, film *film_model.FilmIns
 	var id uuid.UUID
 
 	if err := row.Scan(&id); err != nil {
-		repo.logger.Error("SQL error", slog.Any("error", err))
+		repo.logger.Warn("SQL error", slog.Any("error", err))
 
 		if err = transaction.Rollback(ctx); err != nil {
 			repo.logger.Error("SQL rollback error", slog.Any("err", err))
@@ -283,7 +283,7 @@ func (repo *repository) DeleteFilm(ctx context.Context, filmId uuid.UUID) error 
 func (repo *repository) GetFilms(ctx context.Context, order, orderType string) ([]film_model.Film, error) {
 	repo.logger.Info("get films from repo")
 	q := fmt.Sprintf(`
-		SELECT (id, titile, description, rating, release_date)
+		SELECT id, title, description, rating, release_date
 		FROM films
 		ORDER BY %s %s 
 	`, order, orderType)

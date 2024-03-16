@@ -42,7 +42,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_actor.ActorId"
+                            "$ref": "#/definitions/github.com_Heater_dog_Vk_Intern_internal_transport_actor.ActorId"
                         }
                     }
                 ],
@@ -111,8 +111,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/transport.RespWriter"
                         }
@@ -231,7 +231,10 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/transport.RespWriter"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/actorfilm.ActorFilms"
+                            }
                         }
                     },
                     "400": {
@@ -356,8 +359,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/transport.RespWriter"
                         }
@@ -453,6 +456,78 @@ const docTemplate = `{
                 }
             }
         },
+        "/films": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Получение списка в системе. Сортировка задается параметрами URL order и type",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "films"
+                ],
+                "summary": "GetFilms",
+                "operationId": "get-films",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "type of order",
+                        "name": "order",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "asc or desc",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/film_model.Film"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/transport.RespWriter"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/transport.RespWriter"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/transport.RespWriter"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/transport.RespWriter"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Вход в систему. При успешном входе выдаются refresh и access токены.",
@@ -502,6 +577,23 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "actor_model.Actor": {
+            "type": "object",
+            "properties": {
+                "birth_date": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "actor_model.ActorInsert": {
             "type": "object",
             "properties": {
@@ -529,6 +621,40 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "actorfilm.ActorFilms": {
+            "type": "object",
+            "properties": {
+                "actor": {
+                    "$ref": "#/definitions/actor_model.Actor"
+                },
+                "films": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/film_model.Film"
+                    }
+                }
+            }
+        },
+        "film_model.Film": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "number"
+                },
+                "release_date": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 }
             }

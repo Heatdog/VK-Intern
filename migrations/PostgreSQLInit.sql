@@ -23,19 +23,12 @@ CREATE TABLE IF NOT EXISTS films(
     description VARCHAR(1000),
     release_date DATE,
     rating DECIMAL(4, 2),
-    CHECK (LENGTH(title) > 1 AND rating > 0.00 AND rating < 10.00)
+    CHECK (LENGTH(title) > 1 AND rating > 0.00 AND rating =< 10.00)
 );
 
 CREATE TABLE IF NOT EXISTS actors_to_films (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    actor_id UUID NOT NULL,
-    film_id UUID NOT NULL,
-    CONSTRAINT "FK_actor_id" FOREIGN KEY ("actor_id") REFERENCES "actors" ("id") ON DELETE CASCADE,
-    CONSTRAINT "FK_film_id" FOREIGN KEY ("film_id") REFERENCES "films" ("id") ON DELETE CASCADE
+    actor_id UUID NOT NULL REFERENCES actors(id) ON DELETE CASCADE,
+    film_id UUID NOT NULL REFERENCES films(id) ON DELETE CASCADE,
+    CONSTRAINT actors_to_films_pk PRIMARY KEY(actor_id,film_id)
 );
-
-CREATE UNIQUE INDEX "actors_to_films_actor_id_film_id"
-    ON "actors_to_films"
-    USING btree
-    ("actor_id", "film_id");
 

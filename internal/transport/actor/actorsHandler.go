@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	actor_model "github.com/Heater_dog/Vk_Intern/internal/models/actor"
+	_ "github.com/Heater_dog/Vk_Intern/internal/models/actor_film"
 	actor_service "github.com/Heater_dog/Vk_Intern/internal/services/actor"
 	"github.com/Heater_dog/Vk_Intern/internal/transport"
 	middleware_transport "github.com/Heater_dog/Vk_Intern/internal/transport/middleware"
@@ -79,7 +80,7 @@ func (handler *ActorsHandler) ActorsRouting(w http.ResponseWriter, r *http.Reque
 // @Accept json
 // @Produce json
 // @Param input body actor_model.ActorInsert true "actor info"
-// @Success 200 {object} transport.RespWriter
+// @Success 201 {object} transport.RespWriter
 // @Failure 400 {object} transport.RespWriter
 // @Failure 401 {object} transport.RespWriter
 // @Failure 403 {object} transport.RespWriter
@@ -134,7 +135,7 @@ func (handler *ActorsHandler) AddActor(w http.ResponseWriter, r *http.Request) {
 // @ID get-actors
 // @Accept json
 // @Produce json
-// @Success 200 {object} transport.RespWriter
+// @Success 200 {object} []actorfilm.ActorFilms
 // @Failure 400 {object} transport.RespWriter
 // @Failure 401 {object} transport.RespWriter
 // @Failure 403 {object} transport.RespWriter

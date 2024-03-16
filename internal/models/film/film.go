@@ -25,7 +25,7 @@ type Film struct {
 }
 
 type Id struct {
-	ID uuid.UUID `json:"id" valid:",required"`
+	ID uuid.UUID `json:"id"`
 }
 
 type FilmInsert struct {
