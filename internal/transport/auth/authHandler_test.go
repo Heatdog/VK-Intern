@@ -15,7 +15,6 @@ import (
 
 	user_model "github.com/Heater_dog/Vk_Intern/internal/models/user"
 	user_mock "github.com/Heater_dog/Vk_Intern/internal/services/user/mocks"
-	"github.com/Heater_dog/Vk_Intern/internal/transport"
 	auth_transport "github.com/Heater_dog/Vk_Intern/internal/transport/auth"
 	"github.com/stretchr/testify/assert"
 )
@@ -56,7 +55,6 @@ func TestSignInHandler(t *testing.T) {
 			expectedStatusCode:   http.StatusOK,
 			expectedAccessToken:  "123",
 			expectedRefreshToken: "456",
-			expectedMessage:      "",
 			expectedError:        nil,
 
 			method: "POST",
@@ -69,7 +67,6 @@ func TestSignInHandler(t *testing.T) {
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedAccessToken:  "",
 			expectedRefreshToken: "",
-			expectedMessage:      "login: non zero value required;password: non zero value required",
 			expectedError:        fmt.Errorf("login: non zero value required;password: non zero value required"),
 
 			method: "POST",
@@ -82,7 +79,6 @@ func TestSignInHandler(t *testing.T) {
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedAccessToken:  "",
 			expectedRefreshToken: "",
-			expectedMessage:      "unexpected end of JSON input",
 			expectedError:        fmt.Errorf("unexpected end of JSON input"),
 
 			method: "POST",
@@ -101,7 +97,6 @@ func TestSignInHandler(t *testing.T) {
 			expectedStatusCode:   http.StatusInternalServerError,
 			expectedAccessToken:  "",
 			expectedRefreshToken: "",
-			expectedMessage:      "service error",
 			expectedError:        fmt.Errorf("service error"),
 
 			method: "POST",
@@ -154,16 +149,7 @@ func TestSignInHandler(t *testing.T) {
 					break
 				}
 			}
-			body, _ := io.ReadAll(resp.Body)
 
-			message := transport.RespWriter{
-				Text: el.expectedMessage,
-			}
-
-			expexctedMessage, _ := json.Marshal(&message)
-			if !assert.Equal(t, body, expexctedMessage) {
-				t.Errorf("messgae test case failed. Expected: %s, Got: %s", el.expectedMessage, string(body))
-			}
 			if !assert.Equal(t, el.expectedStatusCode, resp.StatusCode) {
 				t.Errorf("status code test case failed. Expected: %d, Got: %d", el.expectedStatusCode, resp.StatusCode)
 			}

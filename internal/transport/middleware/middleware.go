@@ -132,10 +132,7 @@ func (mid *Middleware) emptyAccessTokenHeader(r *http.Request) (string, string, 
 func (mid *Middleware) verifyTokenHeader(header string) (*jwt.TokenFileds, error) {
 	mid.logger.Debug("check number of fields", slog.String("header", header))
 
-	fmt.Println(header)
 	headers := strings.Split(header, " ")
-	fmt.Println(header)
-	fmt.Println(headers[1])
 	if len(headers) != 2 {
 		err := fmt.Errorf("wrong scheame of auth header")
 		mid.logger.Warn("auth header err", slog.Any("err", err))

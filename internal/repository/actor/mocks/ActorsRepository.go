@@ -121,6 +121,66 @@ func (_m *ActorsRepository) GetActors(ctx context.Context) ([]actor_model.Actor,
 	return r0, r1
 }
 
+// GetActorsWithFilm provides a mock function with given fields: ctx, filmID
+func (_m *ActorsRepository) GetActorsWithFilm(ctx context.Context, filmID string) ([]actor_model.Actor, error) {
+	ret := _m.Called(ctx, filmID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetActorsWithFilm")
+	}
+
+	var r0 []actor_model.Actor
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]actor_model.Actor, error)); ok {
+		return rf(ctx, filmID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []actor_model.Actor); ok {
+		r0 = rf(ctx, filmID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]actor_model.Actor)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, filmID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SearchActors provides a mock function with given fields: ctx, searchQuery
+func (_m *ActorsRepository) SearchActors(ctx context.Context, searchQuery string) ([]actor_model.Actor, error) {
+	ret := _m.Called(ctx, searchQuery)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SearchActors")
+	}
+
+	var r0 []actor_model.Actor
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]actor_model.Actor, error)); ok {
+		return rf(ctx, searchQuery)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []actor_model.Actor); ok {
+		r0 = rf(ctx, searchQuery)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]actor_model.Actor)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, searchQuery)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateBirthDate provides a mock function with given fields: ctx, id, birthDate
 func (_m *ActorsRepository) UpdateBirthDate(ctx context.Context, id uuid.UUID, birthDate string) error {
 	ret := _m.Called(ctx, id, birthDate)

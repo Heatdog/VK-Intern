@@ -6,7 +6,9 @@ import (
 	"log/slog"
 	"net/http"
 
+	actorfilm "github.com/Heater_dog/Vk_Intern/internal/models/actor_film"
 	film_model "github.com/Heater_dog/Vk_Intern/internal/models/film"
+	actor_service "github.com/Heater_dog/Vk_Intern/internal/services/actor"
 	film_service "github.com/Heater_dog/Vk_Intern/internal/services/film"
 	"github.com/Heater_dog/Vk_Intern/internal/transport"
 	middleware_transport "github.com/Heater_dog/Vk_Intern/internal/transport/middleware"
@@ -16,14 +18,16 @@ import (
 type FilmsHandler struct {
 	logger       *slog.Logger
 	filmsService film_service.FilmService
+	actorService actor_service.ActorsService
 	middleware   *middleware_transport.Middleware
 }
 
 func NewFilmsHandler(logger *slog.Logger, filmsService film_service.FilmService,
-	mid *middleware_transport.Middleware) *FilmsHandler {
+	actorService actor_service.ActorsService, mid *middleware_transport.Middleware) *FilmsHandler {
 	return &FilmsHandler{
 		logger:       logger,
 		filmsService: filmsService,
+		actorService: actorService,
 		middleware:   mid,
 	}
 }
@@ -33,6 +37,8 @@ const (
 	updateFilm = "/film/update"
 	deleteFilm = "/film/delete"
 	getFilms   = "/films"
+
+	getFilmsSearch = "/films/search"
 )
 
 func (handler *FilmsHandler) Register(router *http.ServeMux) {
@@ -42,6 +48,7 @@ func (handler *FilmsHandler) Register(router *http.ServeMux) {
 	router.Handle(updateFilm, handler.middleware.Auth(handler.middleware.AdminAuth(filmsHandler)))
 	router.Handle(deleteFilm, handler.middleware.Auth(handler.middleware.AdminAuth(filmsHandler)))
 	router.Handle(getFilms, handler.middleware.Auth(filmsHandler))
+	router.Handle(getFilmsSearch, handler.middleware.Auth(filmsHandler))
 }
 
 func (handler *FilmsHandler) FilmsRouting(w http.ResponseWriter, r *http.Request) {
@@ -65,6 +72,11 @@ func (handler *FilmsHandler) FilmsRouting(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	if r.URL.Path == getFilmsSearch && r.Method == http.MethodGet {
+		handler.GetFilmsSearch(w, r)
+		return
+	}
+
 	transport.NewRespWriter(w, "not found", http.StatusNotFound, handler.logger)
 
 }
@@ -72,17 +84,17 @@ func (handler *FilmsHandler) FilmsRouting(w http.ResponseWriter, r *http.Request
 // Добавление фильма
 // @Summary InsertFilm
 // @Security ApiKeyAuth
-// @Description Добавление фильма в систему
+// @Description Добавление фильма в систему. Все параметры являются обязтельными, кроме списка актеров.
 // @Tags films
 // @ID add-film
 // @Accept json
 // @Produce json
 // @Param input body film_model.FilmInsert true "actor fields"
-// @Success 201 {object} transport.RespWriter
-// @Failure 400 {object} transport.RespWriter
-// @Failure 401 {object} transport.RespWriter
-// @Failure 403 {object} transport.RespWriter
-// @Failure 500 {object} transport.RespWriter
+// @Success 201 {object} transport.RespWriter ID созданного фильма
+// @Failure 400 {object} transport.RespWriter Некорректный ввод данных
+// @Failure 401 {object} transport.RespWriter Отсутсвие токенов авторизации
+// @Failure 403 {object} transport.RespWriter Отсутсвии токена Администратора
+// @Failure 500 {object} transport.RespWriter Внутренняя ошибка сервера
 // @Router /film/insert [post]
 func (handler *FilmsHandler) InsertFilm(w http.ResponseWriter, r *http.Request) {
 	handler.logger.Info("insert film handler")
@@ -135,11 +147,11 @@ func (handler *FilmsHandler) InsertFilm(w http.ResponseWriter, r *http.Request) 
 // @Accept json
 // @Produce json
 // @Param input body film_model.UpdateFilm true "actor fields"
-// @Success 200 {object} transport.RespWriter
-// @Failure 400 {object} transport.RespWriter
-// @Failure 401 {object} transport.RespWriter
-// @Failure 403 {object} transport.RespWriter
-// @Failure 500 {object} transport.RespWriter
+// @Success 200 {object} nil Успешное обновление фильма
+// @Failure 400 {object} transport.RespWriter Некорректный ввод данных
+// @Failure 401 {object} transport.RespWriter Отсутсвие токенов авторизации
+// @Failure 403 {object} transport.RespWriter Отсутсвии токена Администратора
+// @Failure 500 {object} transport.RespWriter Внутренняя ошибка сервера
 // @Router /film/update [put]
 func (handler *FilmsHandler) UpdateFilm(w http.ResponseWriter, r *http.Request) {
 	handler.logger.Info("update film handler")
@@ -178,24 +190,24 @@ func (handler *FilmsHandler) UpdateFilm(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	transport.NewRespWriter(w, "", http.StatusOK, handler.logger)
+	w.WriteHeader(http.StatusOK)
 	handler.logger.Info("successful film update", slog.String("film", updateFilm.ID.String()))
 }
 
 // Удаление фильма
 // @Summary DeleteFilm
 // @Security ApiKeyAuth
-// @Description Удаление фильма в системе
+// @Description Удаление фильма в системе. Id передается в теле запроса и представлен UUID.
 // @Tags films
 // @ID delete-film
 // @Accept json
 // @Produce json
 // @Param input body film_model.Id true "actor fields"
-// @Success 200 {object} transport.RespWriter
-// @Failure 400 {object} transport.RespWriter
-// @Failure 401 {object} transport.RespWriter
-// @Failure 403 {object} transport.RespWriter
-// @Failure 500 {object} transport.RespWriter
+// @Success 200 {object} nil Успешное удаление фильма
+// @Failure 400 {object} transport.RespWriter Некорректный ввод данных
+// @Failure 401 {object} transport.RespWriter Отсутсвие токенов авторизации
+// @Failure 403 {object} transport.RespWriter Отсутсвии токена Администратора
+// @Failure 500 {object} transport.RespWriter Внутренняя ошибка сервера
 // @Router /film/delete [delete]
 func (handler *FilmsHandler) DeleteFilm(w http.ResponseWriter, r *http.Request) {
 	handler.logger.Info("delete film handler")
@@ -233,25 +245,26 @@ func (handler *FilmsHandler) DeleteFilm(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	transport.NewRespWriter(w, "", http.StatusOK, handler.logger)
+	w.WriteHeader(http.StatusOK)
 	handler.logger.Info("successful film delete", slog.String("film", deletedFilm.ID.String()))
 }
 
 // Получение списка фильмов
 // @Summary GetFilms
 // @Security ApiKeyAuth
-// @Description Получение списка в системе. Сортировка задается параметрами URL order и type
+// @Description Получение фильмов списка с актерами, участвующими в данном фильме.
+// @Description Сортировка задается параметрами URL: order и type.
+// @Description Если не задать эти параметры, то будет сортировка по убыванию рейтинга
 // @Tags films
 // @ID get-films
 // @Accept json
 // @Produce json
-// @Param order query string true "type of order"
-// @Param type query string true "asc or desc"
-// @Success 200 {object} []film_model.Film
-// @Failure 400 {object} transport.RespWriter
-// @Failure 401 {object} transport.RespWriter
-// @Failure 403 {object} transport.RespWriter
-// @Failure 500 {object} transport.RespWriter
+// @Param order query string false "type of order"
+// @Param type query string false "asc or desc"
+// @Success 200 {object} []actorfilm.FilmActors Список фильмов с актерами, участвующими в них.
+// @Failure 400 {object} transport.RespWriter  Некорректный ввод данных
+// @Failure 401 {object} transport.RespWriter Отсутсвие токенов авторизации
+// @Failure 500 {object} transport.RespWriter Внутренняя ошибка сервера
 // @Router /films [get]
 func (handler *FilmsHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 	handler.logger.Info("get films handler")
@@ -269,6 +282,66 @@ func (handler *FilmsHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res, err := json.Marshal(films)
+	if err != nil {
+		handler.logger.Info("json marshal failed", slog.Any("error", err))
+		transport.NewRespWriter(w, err.Error(), http.StatusInternalServerError, handler.logger)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write(res); err != nil {
+		handler.logger.Info("films write failed", slog.Any("error", err))
+		transport.NewRespWriter(w, err.Error(), http.StatusInternalServerError, handler.logger)
+		return
+	}
+
+	handler.logger.Info("get films successful")
+}
+
+// Поиск фильма
+// @Summary GetFilmsSearch
+// @Security ApiKeyAuth
+// @Description Поиск фильмов по названию и имени актеров.
+// @Description Выводиться сначала список фильмов, вместе с актерами, принимающих участие.
+// @Description Далее выводится список актеров с фильмами, в кторых они снимались.
+// @Description Запрос передается в параметре search. Список ранжируетя по более точному совпадению.
+// @Tags films
+// @ID search-films
+// @Accept json
+// @Produce json
+// @Param search query string true "search query"
+// @Success 200 {object} actorfilm.SearchStruct  Список фильмов и актеров
+// @Failure 400 {object} transport.RespWriter Некорректный ввод данных
+// @Failure 401 {object} transport.RespWriter Отсутсвие токенов авторизации
+// @Failure 500 {object} transport.RespWriter Внутренняя ошибка сервера
+// @Router /films/search [get]
+func (handler *FilmsHandler) GetFilmsSearch(w http.ResponseWriter, r *http.Request) {
+	handler.logger.Info("get films handler")
+
+	searchQuery := r.URL.Query().Get("search")
+
+	handler.logger.Debug("get film", slog.String("search query", searchQuery))
+
+	films, err := handler.filmsService.SearchFilms(r.Context(), searchQuery)
+	if err != nil {
+		handler.logger.Info("film service failed", slog.Any("error", err))
+		transport.NewRespWriter(w, err.Error(), http.StatusInternalServerError, handler.logger)
+		return
+	}
+
+	actors, err := handler.actorService.SearchActor(r.Context(), searchQuery)
+	if err != nil {
+		handler.logger.Info("actor service failed", slog.Any("error", err))
+		transport.NewRespWriter(w, err.Error(), http.StatusInternalServerError, handler.logger)
+		return
+	}
+
+	actorsAndFilms := &actorfilm.SearchStruct{
+		Actors: actors,
+		Films:  films,
+	}
+
+	res, err := json.Marshal(actorsAndFilms)
 	if err != nil {
 		handler.logger.Info("json marshal failed", slog.Any("error", err))
 		transport.NewRespWriter(w, err.Error(), http.StatusInternalServerError, handler.logger)

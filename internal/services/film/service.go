@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 
+	actorfilm "github.com/Heater_dog/Vk_Intern/internal/models/actor_film"
 	film_model "github.com/Heater_dog/Vk_Intern/internal/models/film"
 	actor_repository "github.com/Heater_dog/Vk_Intern/internal/repository/actor"
 	film_repository "github.com/Heater_dog/Vk_Intern/internal/repository/film"
@@ -14,7 +15,8 @@ type FilmService interface {
 	InsertFilm(ctx context.Context, film *film_model.FilmInsert) (string, error)
 	UpdateFilm(ctx context.Context, film *film_model.UpdateFilm) error
 	DeleteFilm(ctx context.Context, filmId film_model.Id) error
-	GetFilms(ctx context.Context, order, orderType string) ([]film_model.Film, error)
+	GetFilms(ctx context.Context, order, orderType string) ([]actorfilm.FilmActors, error)
+	SearchFilms(ctx context.Context, searchQuery string) ([]actorfilm.FilmActors, error)
 }
 
 type filmService struct {
@@ -35,7 +37,7 @@ func NewFilmService(logger *slog.Logger, filmrRepo film_repository.FilmsReposito
 func (s *filmService) InsertFilm(ctx context.Context, film *film_model.FilmInsert) (string, error) {
 	s.logger.Info("film insert service")
 
-	s.logger.Debug("check actors")
+	s.logger.Debug("check actors", slog.Any("actros", film.UsersID))
 	for _, id := range film.UsersID {
 
 		s.logger.Debug("Check actor", slog.String("id", id.ID.String()))
@@ -171,8 +173,49 @@ func (s *filmService) DeleteFilm(ctx context.Context, filmId film_model.Id) erro
 	return s.filmRepo.DeleteFilm(ctx, filmId.ID)
 }
 
-func (s *filmService) GetFilms(ctx context.Context, order, orderType string) ([]film_model.Film, error) {
+func (s *filmService) GetFilms(ctx context.Context, order, orderType string) ([]actorfilm.FilmActors, error) {
 	s.logger.Info("get films service")
 
-	return s.filmRepo.GetFilms(ctx, order, orderType)
+	films, err := s.filmRepo.GetFilms(ctx, order, orderType)
+	if err != nil {
+		s.logger.Warn("film repo error")
+	}
+
+	return s.getActorsForFilm(ctx, films)
+}
+
+func (s *filmService) SearchFilms(ctx context.Context, searchQuery string) ([]actorfilm.FilmActors, error) {
+	s.logger.Info("search films service")
+
+	s.logger.Debug("search in films repo", slog.String("query", searchQuery))
+	films, err := s.filmRepo.SearchFilms(ctx, searchQuery)
+
+	if err != nil {
+		s.logger.Error("films storage error", slog.Any("err", err))
+		return nil, err
+	}
+
+	s.logger.Debug("films from repo", slog.Any("films", films))
+	return s.getActorsForFilm(ctx, films)
+}
+
+func (s *filmService) getActorsForFilm(ctx context.Context, films []film_model.Film) ([]actorfilm.FilmActors, error) {
+	var res []actorfilm.FilmActors
+	for _, film := range films {
+		s.logger.Debug("get actors in film", slog.String("film_id", film.ID.String()))
+
+		actors, err := s.actorRepo.GetActorsWithFilm(ctx, film.ID.String())
+		if err != nil {
+			s.logger.Error("actors storage error", slog.Any("err", err))
+			return nil, err
+		}
+
+		res = append(res, actorfilm.FilmActors{
+			Film:   film,
+			Actors: actors,
+		})
+	}
+
+	s.logger.Debug("result", slog.Any("films", res))
+	return res, nil
 }

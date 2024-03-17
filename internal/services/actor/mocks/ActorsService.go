@@ -95,6 +95,36 @@ func (_m *ActorsService) InsertActor(_a0 context.Context, actor actor_model.Acto
 	return r0, r1
 }
 
+// SearchActor provides a mock function with given fields: _a0, searchQuery
+func (_m *ActorsService) SearchActor(_a0 context.Context, searchQuery string) ([]actorfilm.ActorFilms, error) {
+	ret := _m.Called(_a0, searchQuery)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SearchActor")
+	}
+
+	var r0 []actorfilm.ActorFilms
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]actorfilm.ActorFilms, error)); ok {
+		return rf(_a0, searchQuery)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []actorfilm.ActorFilms); ok {
+		r0 = rf(_a0, searchQuery)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]actorfilm.ActorFilms)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(_a0, searchQuery)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateActor provides a mock function with given fields: contex, fileds
 func (_m *ActorsService) UpdateActor(contex context.Context, fileds actor_model.UpdateActor) error {
 	ret := _m.Called(contex, fileds)

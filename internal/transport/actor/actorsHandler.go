@@ -74,17 +74,18 @@ func (handler *ActorsHandler) ActorsRouting(w http.ResponseWriter, r *http.Reque
 // Добавление актера
 // @Summary AddActor
 // @Security ApiKeyAuth
-// @Description Добавление актера в систему
-// @Tags actors
+// @Description Добавление актера в систему. Проверяется коректность ввода информации, все поля обязтельны.
+// @Description Данные передаются в теле запроса. Дата задается форматом YYYY-MM-DD
 // @ID add-actor
+// @Tags actors
 // @Accept json
 // @Produce json
 // @Param input body actor_model.ActorInsert true "actor info"
-// @Success 201 {object} transport.RespWriter
-// @Failure 400 {object} transport.RespWriter
-// @Failure 401 {object} transport.RespWriter
-// @Failure 403 {object} transport.RespWriter
-// @Failure 500 {object} transport.RespWriter
+// @Success 201 {object} transport.RespWriter ID созданного актера
+// @Failure 400 {object} transport.RespWriter Некорректный запрос
+// @Failure 401 {object} transport.RespWriter Отсутствии токенов авторизации
+// @Failure 403 {object} transport.RespWriter Отсутсвии токена Администратора
+// @Failure 500 {object} transport.RespWriter Внутренняя ошибка сервера
 // @Router /actor/insert [post]
 func (handler *ActorsHandler) AddActor(w http.ResponseWriter, r *http.Request) {
 	handler.logger.Info("add actor handler")
@@ -133,13 +134,10 @@ func (handler *ActorsHandler) AddActor(w http.ResponseWriter, r *http.Request) {
 // @Description Получение актеров из системы. Вместе с актерами выводится список фильмов.
 // @Tags actors
 // @ID get-actors
-// @Accept json
 // @Produce json
-// @Success 200 {object} []actorfilm.ActorFilms
-// @Failure 400 {object} transport.RespWriter
-// @Failure 401 {object} transport.RespWriter
-// @Failure 403 {object} transport.RespWriter
-// @Failure 500 {object} transport.RespWriter
+// @Success 200 {object} []actorfilm.ActorFilms Список актеров с фильмами
+// @Failure 401 {object} transport.RespWriter Отсутсвие токенов авторизации
+// @Failure 500 {object} transport.RespWriter Внутренняя ошибка сервера
 // @Router /actors [get]
 func (handler *ActorsHandler) GetActors(w http.ResponseWriter, r *http.Request) {
 	handler.logger.Info("get actors handler")
@@ -172,20 +170,20 @@ type ActorId struct {
 	ID uuid.UUID `json:"id"`
 }
 
-// удаление актера
+// Удаление актера
 // @Summary DeleteActor
 // @Security ApiKeyAuth
-// @Description Удаление актера из системы
+// @Description Удаление актера из системы. ID актера передается в теле запроса. ID предаствлен строкой UUID.
 // @Tags actors
 // @ID delete-actor
 // @Accept json
 // @Produce json
 // @Param input body ActorId true "actor id"
-// @Success 200 {object} transport.RespWriter
-// @Failure 400 {object} transport.RespWriter
-// @Failure 401 {object} transport.RespWriter
-// @Failure 403 {object} transport.RespWriter
-// @Failure 500 {object} transport.RespWriter
+// @Success 200 {object} nil Удаление актера прошло успешно
+// @Failure 400 {object} transport.RespWriter Некорректный ввод данных
+// @Failure 401 {object} transport.RespWriter Отсутсвие токенов авторизации
+// @Failure 403 {object} transport.RespWriter Отсутсвии токена Администратора
+// @Failure 500 {object} transport.RespWriter Внутренняя ошибка сервера
 // @Router /actor/delete [delete]
 func (handler *ActorsHandler) DeleteActor(w http.ResponseWriter, r *http.Request) {
 	handler.logger.Info("delete actor handler")
@@ -220,17 +218,18 @@ func (handler *ActorsHandler) DeleteActor(w http.ResponseWriter, r *http.Request
 // Обновление информации актера
 // @Summary UpdateActor
 // @Security ApiKeyAuth
-// @Description Обновление информации об акетре в системе
+// @Description Обновление информации об акетре в системе. Можно задать как один параметр на изменение, так и все.
+// @Description Параметры передаются в теле запроса
 // @Tags actors
 // @ID update-actor
 // @Accept json
 // @Produce json
 // @Param input body actor_model.UpdateActor true "actor fields"
-// @Success 200 {object} transport.RespWriter
-// @Failure 400 {object} transport.RespWriter
-// @Failure 401 {object} transport.RespWriter
-// @Failure 403 {object} transport.RespWriter
-// @Failure 500 {object} transport.RespWriter
+// @Success 200 {object} nil Удаление прошло успешно
+// @Failure 400 {object} transport.RespWriter Некорректный ввод данных
+// @Failure 401 {object} transport.RespWriter Отсутсвие токенов авторизации
+// @Failure 403 {object} transport.RespWriter Отсутсвии токена Администратора
+// @Failure 500 {object} transport.RespWriter Внутренняя ошибка сервера
 // @Router /actor/update [put]
 func (handler *ActorsHandler) UpdateActor(w http.ResponseWriter, r *http.Request) {
 	handler.logger.Info("update actor handler")

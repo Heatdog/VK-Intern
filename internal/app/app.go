@@ -87,7 +87,7 @@ func App() {
 	actor_transport.NewActorsHandler(logger, actorService, mid).Register(mux)
 
 	filmService := film_service.NewFilmService(logger, filmRepo, actorRepo)
-	film_transport.NewFilmsHandler(logger, filmService, mid).Register(mux)
+	film_transport.NewFilmsHandler(logger, filmService, actorService, mid).Register(mux)
 
 	logger.Info("adding swagger documentation")
 	mux.HandleFunc("/swagger/", httpSwagger.Handler(

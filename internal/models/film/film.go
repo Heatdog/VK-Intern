@@ -25,7 +25,7 @@ type Film struct {
 }
 
 type Id struct {
-	ID uuid.UUID `json:"id"`
+	ID uuid.UUID `json:"id" valid:",required"`
 }
 
 type FilmInsert struct {
@@ -34,7 +34,7 @@ type FilmInsert struct {
 	ReleaseDate string `json:"release_date" valid:"date,required"`
 	Rating      string `json:"rating" valid:"float,required,range(0|10)"`
 
-	UsersID []Id `json:"actors" valid:",required"`
+	UsersID []Id `json:"actors"`
 }
 
 type UpdateFilm struct {
@@ -43,7 +43,7 @@ type UpdateFilm struct {
 	Title       string `json:"title" valid:"length(1|150)"`
 	Description string `json:"description" valid:"length(0|1000)"`
 	ReleaseDate string `json:"release_date" valid:"date"`
-	Rating      string `json:"rating" valid:"float,required,range(0|10)"`
+	Rating      string `json:"rating" valid:"float,range(0|10)"`
 
 	ActorsId []Id `json:"actors"`
 }

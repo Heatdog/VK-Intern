@@ -43,7 +43,7 @@ func TestGetActors(t *testing.T) {
 				}
 
 				mock.ExpectQuery("SELECT f.id, f.title, f.description, f.release_date, f.rating FROM films f").
-					WithArgs().
+					WithArgs(actorId).
 					WillReturnRows(rows)
 			},
 
@@ -66,6 +66,7 @@ func TestGetActors(t *testing.T) {
 				},
 			},
 		},
+
 		{
 			name: "query error",
 
@@ -76,7 +77,7 @@ func TestGetActors(t *testing.T) {
 					rows.AddRow(el.ID, el.Title, el.Description, el.ReleaseDate, el.Rating)
 				}
 
-				mock.ExpectQuery("SELECT f.id, f.title, f.description, f.release_date, f.rating FROM films f LEFT JOIN actors_to_films af ON af.film_id = f.id WHERE af.user_id = $1").
+				mock.ExpectQuery("SELECT f.id, f.title, f.description, f.release_date, f.rating FROM films f").
 					WithArgs(actorId).
 					WillReturnError(err)
 			},

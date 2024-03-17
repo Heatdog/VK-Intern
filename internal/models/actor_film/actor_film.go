@@ -14,3 +14,8 @@ type FilmActors struct {
 	Film   film_model.Film     `json:"film"`
 	Actors []actor_model.Actor `json:"actors"`
 }
+
+type SearchStruct struct {
+	Actors []ActorFilms `json:"actors"`
+	Films  []FilmActors `json:"films"`
+}

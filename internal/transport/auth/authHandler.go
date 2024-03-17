@@ -44,13 +44,14 @@ func (handler *AuthHandler) LoginRouting(w http.ResponseWriter, r *http.Request)
 // @Summary SignIn
 // @Tags auth
 // @Description Вход в систему. При успешном входе выдаются refresh и access токены.
+// @Description Refresh токен храниться в http-only cookie
 // @ID sign-in
 // @Accept json
 // @Produce json
 // @Param input body user_model.UserLogin true "account info"
-// @Success 200 {integer} integer 1
-// @Failure 400 {object} transport.RespWriter
-// @Failure 500 {object} transport.RespWriter
+// @Success 200 {object} nil Успешный вход
+// @Failure 400 {object} transport.RespWriter Некооректные входные данные
+// @Failure 500 {object} transport.RespWriter Внутренняя ошибка сервера
 // @Router /login [post]
 func (handler *AuthHandler) SignInHandle(w http.ResponseWriter, r *http.Request) {
 	handler.logger.Info("sign in user")
@@ -100,6 +101,6 @@ func (handler *AuthHandler) SignInHandle(w http.ResponseWriter, r *http.Request)
 		Path:     "/",
 	})
 	w.Header().Set("authorization", "Bearer "+accessToken)
-	transport.NewRespWriter(w, "", http.StatusOK, handler.logger)
+	w.WriteHeader(http.StatusOK)
 	handler.logger.Info("successful auth", slog.String("user", user.Login))
 }

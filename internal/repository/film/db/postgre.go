@@ -77,10 +77,11 @@ func (repo *repository) InsertFilm(ctx context.Context, film *film_model.FilmIns
 	var id uuid.UUID
 
 	if err := row.Scan(&id); err != nil {
-		repo.logger.Warn("SQL error", slog.Any("error", err))
+		repo.logger.Info("SQL error", slog.Any("error", err))
 
-		if err = transaction.Rollback(ctx); err != nil {
-			repo.logger.Error("SQL rollback error", slog.Any("err", err))
+		if errTransaction := transaction.Rollback(ctx); errTransaction != nil {
+			repo.logger.Error("SQL rollback error", slog.Any("err", errTransaction))
+			return "", errTransaction
 		}
 		return "", err
 	}
@@ -89,8 +90,9 @@ func (repo *repository) InsertFilm(ctx context.Context, film *film_model.FilmIns
 		if err := repo.insertFilmActor(ctx, id.String(), actorId.ID.String()); err != nil {
 			repo.logger.Error("SQL error", slog.Any("err", err))
 
-			if err = transaction.Rollback(ctx); err != nil {
-				repo.logger.Error("SQL rollback error", slog.Any("err", err))
+			if errTransaction := transaction.Rollback(ctx); errTransaction != nil {
+				repo.logger.Error("SQL rollback error", slog.Any("err", errTransaction))
+				return "", errTransaction
 			}
 			return "", err
 		}
@@ -290,6 +292,39 @@ func (repo *repository) GetFilms(ctx context.Context, order, orderType string) (
 
 	repo.logger.Debug("SQL query", slog.String("query", q))
 	rows, err := repo.dbClient.Query(ctx, q)
+
+	if err != nil {
+		repo.logger.Error("SQL error", slog.Any("err", err))
+		return nil, err
+	}
+
+	var films []film_model.Film
+	for rows.Next() {
+
+		var film film_model.Film
+		if err = rows.Scan(&film.ID, &film.Title, &film.Description, &film.Rating, &film.ReleaseDate); err != nil {
+			repo.logger.Error("row scan error", slog.Any("err", err))
+			return nil, err
+		}
+
+		films = append(films, film)
+	}
+
+	repo.logger.Info("successful select")
+	return films, nil
+}
+
+func (repo *repository) SearchFilms(ctx context.Context, searchQuery string) ([]film_model.Film, error) {
+	repo.logger.Info("search films from repo")
+	q := `
+		SELECT id, title, description, rating, release_date
+		FROM films
+		WHERE to_tsvector(title) @@ to_tsquery($1)
+		ORDER BY ts_rank(to_tsvector(title), to_tsquery($1)) DESC
+	`
+
+	repo.logger.Debug("SQL query", slog.String("query", q))
+	rows, err := repo.dbClient.Query(ctx, q, searchQuery)
 
 	if err != nil {
 		repo.logger.Error("SQL error", slog.Any("err", err))

@@ -22,4 +22,5 @@ type FilmsRepository interface {
 	DeleteFilm(ctx context.Context, filmId uuid.UUID) error
 
 	GetFilms(ctx context.Context, order, orderType string) ([]film_model.Film, error)
+	SearchFilms(ctx context.Context, searchQuery string) ([]film_model.Film, error)
 }

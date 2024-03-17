@@ -141,6 +141,36 @@ func (_m *FilmsRepository) InsertFilm(ctx context.Context, film *film_model.Film
 	return r0, r1
 }
 
+// SearchFilms provides a mock function with given fields: ctx, searchQuery
+func (_m *FilmsRepository) SearchFilms(ctx context.Context, searchQuery string) ([]film_model.Film, error) {
+	ret := _m.Called(ctx, searchQuery)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SearchFilms")
+	}
+
+	var r0 []film_model.Film
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]film_model.Film, error)); ok {
+		return rf(ctx, searchQuery)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []film_model.Film); ok {
+		r0 = rf(ctx, searchQuery)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]film_model.Film)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, searchQuery)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateFilmActors provides a mock function with given fields: ctx, filmId, actorsID
 func (_m *FilmsRepository) UpdateFilmActors(ctx context.Context, filmId uuid.UUID, actorsID []film_model.Id) error {
 	ret := _m.Called(ctx, filmId, actorsID)

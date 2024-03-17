@@ -139,7 +139,7 @@ func (repo *repository) updateActor(ctx context.Context, query string, id uuid.U
 }
 
 func (repo *repository) GetActor(ctx context.Context, id string) (actor_model.Actor, error) {
-	repo.logger.Info("get actor from repo repo", slog.String("id", id))
+	repo.logger.Info("get actor from repo", slog.String("id", id))
 
 	q := `
 		SELECT id, name, gender, birth_date
@@ -157,4 +157,70 @@ func (repo *repository) GetActor(ctx context.Context, id string) (actor_model.Ac
 	}
 
 	return actor, nil
+}
+
+func (repo *repository) GetActorsWithFilm(ctx context.Context, filmID string) ([]actor_model.Actor, error) {
+	repo.logger.Info("get actor from repo with film", slog.String("film_id", filmID))
+
+	q := `
+		SELECT a.id, a.name, a.gender, a.birth_date
+		FROM actors a
+		LEFT JOIN actors_to_films af ON af.actor_id = a.id
+		WHERE af.film_id = $1
+	`
+	repo.logger.Debug("actor repo query", slog.String("query", q))
+	rows, err := repo.dbClient.Query(ctx, q, filmID)
+
+	if err != nil {
+		repo.logger.Error("select actors from repo err", slog.Any("err", err))
+		return nil, err
+	}
+
+	var res []actor_model.Actor
+
+	for rows.Next() {
+		var actor actor_model.Actor
+
+		if err := rows.Scan(&actor.ID, &actor.Name, &actor.Gender, &actor.BirthDate); err != nil {
+			repo.logger.Error("SQL Error", slog.Any("err", err))
+			return nil, err
+		}
+
+		res = append(res, actor)
+	}
+
+	return res, nil
+}
+
+func (repo *repository) SearchActors(ctx context.Context, searchQuery string) ([]actor_model.Actor, error) {
+	repo.logger.Info("search actors in repo")
+	q := `
+		SELECT id, name, gender, birth_date
+		FROM actors
+		WHERE to_tsvector(name) @@ to_tsquery($1)
+		ORDER BY ts_rank(to_tsvector(name), to_tsquery($1)) DESC
+	`
+
+	repo.logger.Debug("SQL query", slog.String("query", q))
+	rows, err := repo.dbClient.Query(ctx, q, searchQuery)
+
+	if err != nil {
+		repo.logger.Error("SQL error", slog.Any("err", err))
+		return nil, err
+	}
+
+	var actors []actor_model.Actor
+	for rows.Next() {
+
+		var actor actor_model.Actor
+		if err = rows.Scan(&actor.ID, &actor.Name, &actor.Gender, &actor.BirthDate); err != nil {
+			repo.logger.Error("row scan error", slog.Any("err", err))
+			return nil, err
+		}
+
+		actors = append(actors, actor)
+	}
+
+	repo.logger.Info("successful select")
+	return actors, nil
 }

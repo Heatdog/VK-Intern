@@ -110,7 +110,7 @@ func TestActorInsertHandler(t *testing.T) {
 
 			handler := actor_transport.NewActorsHandler(logger, actorService, mid)
 
-			r := httptest.NewRequest(testCase.method, "/actor", bytes.NewBufferString(testCase.requestBody))
+			r := httptest.NewRequest(testCase.method, "/actor/insert", bytes.NewBufferString(testCase.requestBody))
 			w := httptest.NewRecorder()
 			handler.ActorsRouting(w, r)
 

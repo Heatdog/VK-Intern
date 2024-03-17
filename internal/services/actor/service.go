@@ -17,6 +17,7 @@ type ActorsService interface {
 	GetActors(context.Context) ([]actorfilm.ActorFilms, error)
 	DeleteActor(context context.Context, userID uuid.UUID) error
 	UpdateActor(contex context.Context, fileds actor_model.UpdateActor) error
+	SearchActor(context context.Context, searchQuery string) ([]actorfilm.ActorFilms, error)
 }
 
 type actorsService struct {
@@ -45,29 +46,13 @@ func (service *actorsService) GetActors(context context.Context) ([]actorfilm.Ac
 	service.logger.Info("actor service get")
 
 	service.logger.Debug("get actors from repositpry")
-	actros, err := service.repoActors.GetActors(context)
+	actors, err := service.repoActors.GetActors(context)
 	if err != nil {
 		service.logger.Error("actors storage error", slog.Any("err", err))
 		return nil, err
 	}
 
-	var res []actorfilm.ActorFilms
-
-	for _, actor := range actros {
-		service.logger.Debug("get films with actor", slog.String("actor", actor.ID.String()))
-		films, err := service.repoFilms.GetFilmsWithActor(context, actor.ID)
-		if err != nil {
-			service.logger.Error("films storage error", slog.Any("err", err))
-			return nil, err
-		}
-
-		res = append(res, actorfilm.ActorFilms{
-			Actor: actor,
-			Films: films,
-		})
-	}
-
-	return res, nil
+	return service.getFilmsForActor(context, actors)
 }
 
 func (service *actorsService) DeleteActor(context context.Context, actorId uuid.UUID) error {
@@ -103,4 +88,39 @@ func (service *actorsService) UpdateActor(contex context.Context, fileds actor_m
 	}
 
 	return nil
+}
+
+func (service *actorsService) SearchActor(context context.Context, searchQuery string) ([]actorfilm.ActorFilms, error) {
+	service.logger.Info("actor service search")
+
+	actros, err := service.repoActors.SearchActors(context, searchQuery)
+	if err != nil {
+		service.logger.Error("actor storage error", slog.Any("err", err))
+		return nil, err
+	}
+
+	return service.getFilmsForActor(context, actros)
+}
+
+func (service *actorsService) getFilmsForActor(context context.Context,
+	actors []actor_model.Actor) ([]actorfilm.ActorFilms, error) {
+
+	var res []actorfilm.ActorFilms
+
+	for _, actor := range actors {
+		service.logger.Debug("get films with actor", slog.String("actor", actor.ID.String()))
+
+		films, err := service.repoFilms.GetFilmsWithActor(context, actor.ID)
+		if err != nil {
+			service.logger.Error("films storage error", slog.Any("err", err))
+			return nil, err
+		}
+
+		res = append(res, actorfilm.ActorFilms{
+			Actor: actor,
+			Films: films,
+		})
+	}
+
+	return res, nil
 }

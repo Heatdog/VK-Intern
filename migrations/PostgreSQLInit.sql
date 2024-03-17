@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS films(
     description VARCHAR(1000),
     release_date DATE,
     rating DECIMAL(4, 2),
-    CHECK (LENGTH(title) > 1 AND rating > 0.00 AND rating =< 10.00)
+    CHECK (LENGTH(title) > 1 AND rating >= 0.00 AND rating <= 10.00)
 );
 
 CREATE TABLE IF NOT EXISTS actors_to_films (
@@ -31,4 +31,12 @@ CREATE TABLE IF NOT EXISTS actors_to_films (
     film_id UUID NOT NULL REFERENCES films(id) ON DELETE CASCADE,
     CONSTRAINT actors_to_films_pk PRIMARY KEY(actor_id,film_id)
 );
+
+CREATE INDEX idx_gin_films
+ON films
+USING gin(title);
+
+CREATE INDEX idx_gin_actors
+ON actors
+USING gin(name);
 

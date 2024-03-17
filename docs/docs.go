@@ -23,7 +23,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Удаление актера из системы",
+                "description": "Удаление актера из системы. ID актера передается в теле запроса. ID предаствлен строкой UUID.",
                 "consumes": [
                     "application/json"
                 ],
@@ -42,16 +42,13 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github.com_Heater_dog_Vk_Intern_internal_transport_actor.ActorId"
+                            "$ref": "#/definitions/internal_transport_actor.ActorId"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/transport.RespWriter"
-                        }
+                        "description": "OK"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -87,7 +84,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Добавление актера в систему",
+                "description": "Добавление актера в систему. Проверяется коректность ввода информации, все поля обязтельны.\nДанные передаются в теле запроса. Дата задается форматом YYYY-MM-DD",
                 "consumes": [
                     "application/json"
                 ],
@@ -151,7 +148,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Обновление информации об акетре в системе",
+                "description": "Обновление информации об акетре в системе. Можно задать как один параметр на изменение, так и все.\nПараметры передаются в теле запроса",
                 "consumes": [
                     "application/json"
                 ],
@@ -176,10 +173,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/transport.RespWriter"
-                        }
+                        "description": "OK"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -216,9 +210,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "Получение актеров из системы. Вместе с актерами выводится список фильмов.",
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
@@ -237,20 +228,8 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/transport.RespWriter"
-                        }
-                    },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/transport.RespWriter"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/transport.RespWriter"
                         }
@@ -271,7 +250,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Удаление фильма в системе",
+                "description": "Удаление фильма в системе. Id передается в теле запроса и представлен UUID.",
                 "consumes": [
                     "application/json"
                 ],
@@ -296,10 +275,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/transport.RespWriter"
-                        }
+                        "description": "OK"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -335,7 +311,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Добавление фильма в систему",
+                "description": "Добавление фильма в систему. Все параметры являются обязтельными, кроме списка актеров.",
                 "consumes": [
                     "application/json"
                 ],
@@ -424,10 +400,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/transport.RespWriter"
-                        }
+                        "description": "OK"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -463,7 +436,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Получение списка в системе. Сортировка задается параметрами URL order и type",
+                "description": "Получение фильмов списка с актерами, участвующими в данном фильме.\nСортировка задается параметрами URL: order и type.\nЕсли не задать эти параметры, то будет сортировка по убыванию рейтинга",
                 "consumes": [
                     "application/json"
                 ],
@@ -480,15 +453,13 @@ const docTemplate = `{
                         "type": "string",
                         "description": "type of order",
                         "name": "order",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "asc or desc",
                         "name": "type",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -497,7 +468,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/film_model.Film"
+                                "$ref": "#/definitions/actorfilm.FilmActors"
                             }
                         }
                     },
@@ -513,8 +484,58 @@ const docTemplate = `{
                             "$ref": "#/definitions/transport.RespWriter"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/transport.RespWriter"
+                        }
+                    }
+                }
+            }
+        },
+        "/films/search": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Поиск фильмов по названию и имени актеров.\nВыводиться сначала список фильмов, вместе с актерами, принимающих участие.\nДалее выводится список актеров с фильмами, в кторых они снимались.\nЗапрос передается в параметре search. Список ранжируетя по более точному совпадению.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "films"
+                ],
+                "summary": "GetFilmsSearch",
+                "operationId": "search-films",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "search query",
+                        "name": "search",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/actorfilm.SearchStruct"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/transport.RespWriter"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/transport.RespWriter"
                         }
@@ -530,7 +551,7 @@ const docTemplate = `{
         },
         "/login": {
             "post": {
-                "description": "Вход в систему. При успешном входе выдаются refresh и access токены.",
+                "description": "Вход в систему. При успешном входе выдаются refresh и access токены. Refresh токен храниться\nв http-only cookie",
                 "consumes": [
                     "application/json"
                 ],
@@ -555,10 +576,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "integer"
-                        }
+                        "description": "OK"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -635,6 +653,37 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/film_model.Film"
+                    }
+                }
+            }
+        },
+        "actorfilm.FilmActors": {
+            "type": "object",
+            "properties": {
+                "actors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/actor_model.Actor"
+                    }
+                },
+                "film": {
+                    "$ref": "#/definitions/film_model.Film"
+                }
+            }
+        },
+        "actorfilm.SearchStruct": {
+            "type": "object",
+            "properties": {
+                "actors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/actorfilm.ActorFilms"
+                    }
+                },
+                "films": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/actorfilm.FilmActors"
                     }
                 }
             }

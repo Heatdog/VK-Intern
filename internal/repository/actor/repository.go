@@ -13,6 +13,8 @@ type ActorsRepository interface {
 
 	GetActors(ctx context.Context) ([]actor_model.Actor, error)
 	GetActor(ctx context.Context, id string) (actor_model.Actor, error)
+	GetActorsWithFilm(ctx context.Context, filmID string) ([]actor_model.Actor, error)
+	SearchActors(ctx context.Context, searchQuery string) ([]actor_model.Actor, error)
 
 	DeleteActor(ctx context.Context, id uuid.UUID) error
 
